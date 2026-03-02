@@ -1,0 +1,31 @@
+{
+    "base_style": "Chinese ink-wash painting style, minimalist masterwork, elegant brush strokes, simple lines, intentional white space, subtle color washes, high artistic quality. Isolated on plain white background. Strictly no text, no seals, no watermarks, no decorative borders, no background scenery, no extra symbols, no characters.",
+    "adherence_suffix": "Use the reference image [1] for overall layout and basic structure inspiration, but feel free to add artistic details and natural brush movements. Maintain an organic, expressive ink-wash aesthetic.",
+    "pictogram": {
+        "木": "An organic gnarled tree with natural branches and roots. Avoid calligraphic strokes or text-like lines. Focus on natural bark texture and fluid ink renders. Only the tree itself, no surrounding elements.",
+        "山": "Three distinct mountain peaks in blue and grey ink gradients. The peaks rise through minimal mist. Isolated peaks only, no background landscape, no miniature houses or trees.",
+        "水": "A central fluid ink stream with dynamic splashes representing water flow. Serene cyan ink washes. Just the water movement itself, no river banks or rocks.",
+        "火": "A central rising flame with two side sparks captured in warm red and orange ink. Ethereal brushwork. Pure flame subject, no wood, no smoke clouds, no ash.",
+        "人": "A simple minimalist silhouette of a person in mid-stride. Dynamic black ink lines. Only the human figure, no ground line, no accessories, no shadows.",
+        "林": "Two simple, elegant trees standing side-by-side. Light misty green washes. Isolated trees only, no grass, no sky, no forest floor.",
+        "森": "A minimalist cluster of three trees forming a lush canopy. Multi-layered green ink washes. Just the trees, no surrounding environment, no animals."
+    },
+    "transition": {
+        "木": "A transition of a natural tree into simplified ink strokes. Pure white background, no decorative elements.",
+        "山": "Mountain peaks aligning into minimalist vertical bars. Isolated on white, no secondary scenery.",
+        "水": "Water currents coalescing into fluid marks. Clean edges, no background distractions.",
+        "火": "Flame petals straightening into energetic ink strokes. Subject only, no surrounding glow or context.",
+        "人": "A walking silhouette merging into two sweeping brush lines. No ground, no background objects."
+    },
+    "subject_morph": {
+        "木": "Transform this into a natural gnarled tree sitting alone. Use the composition of [1] as an inspired guide. Avoid text-like lines. Isolated on white.",
+        "山": "Transform this into three distinct ink-wash mountain peaks based on the layout of [1]. No houses, no trees, no background scapes.",
+        "水": "Transform this into serene flowing cyan ink lines. Inspired by the movement in [1]. Only the water movement, no environment.",
+        "火": "Transform this into an ethereal ink-wash flame following the general form of [1]. Subject only, no smoke or wood.",
+        "人": "Transform this into a minimalist ink-wash figure walking based on [1]. Only the figure, no shadows or ground."
+    },
+    "templates": {
+        "pictogram_full": "{character_description} {base_style}",
+        "pictogram_default": "A minimalist Chinese ink-wash painting of {character}, simple lines, subtle colors. Isolated on white background, no text, no extras."
+    }
+}

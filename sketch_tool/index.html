@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sketch Tool - Outline Master</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="studio-container">
+        <header>
+            <h1>Sketch Tool</h1>
+            <div class="header-actions">
+                <button id="clearBtn">清除畫布</button>
+                <button id="undoBtn">復原</button>
+                <button id="saveBtn" class="primary">儲存原稿 (PNG)</button>
+            </div>
+        </header>
+
+        <div class="canvas-wrapper">
+            <canvas id="sketchCanvas"></canvas>
+        </div>
+
+        <div class="toolbar">
+            <div class="tool-group">
+                <label>筆刷大小</label>
+                <input type="range" id="brushSize" min="1" max="20" value="3">
+            </div>
+            <div class="tool-group">
+                <label>顏色</label>
+                <div class="color-option active" data-color="#000000" style="background: #000000;"></div>
+                <div class="color-option" data-color="#555555" style="background: #555555;"></div>
+                <div class="color-option" data-color="#888888" style="background: #888888;"></div>
+            </div>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

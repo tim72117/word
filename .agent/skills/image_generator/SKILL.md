@@ -105,7 +105,7 @@ if response.generated_images:
           reference_image=types.Image(image_bytes=base_bytes, mime_type='image/png')
       )
   ]
-  
+
   response = client.models.edit_image(
       model="imagen-3.0-capability-001",
       prompt="Your transformation prompt here",

@@ -16,13 +16,12 @@ SERVE_DOCKER_URI = "us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-docke
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 serving_env = {
-    "MODEL_ID": "stabilityai/stable-diffusion-xl-base-1.0",
-    "CONTROLNET_MODEL_ID": "diffusers/controlnet-canny-sdxl-1.0", # 鎖定木字輪廓的核心
-    "CONTROLNET_MODEL_NAME": "diffusers/controlnet-canny-sdxl-1.0", # 增加別名以確保容器能正確讀取
+    "MODEL_ID": "diffusers/controlnet-canny-sdxl-1.0", # 在 TASK=controlnet 下，此變數被視為 ControlNet 權重
     "TASK": "controlnet",
 }
 
 if HF_TOKEN:
+    serving_env["HF_TOKEN"] = HF_TOKEN
     serving_env["HUGGING_FACE_HUB_TOKEN"] = HF_TOKEN
 
 # --- 執行部署 ---

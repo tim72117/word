@@ -4,7 +4,7 @@
     --accent-color: #6366f1;
     --text-color: #e2e8f0;
     --border-color: rgba(255, 255, 255, 0.1);
-    --canvas-bg: #ffffff;
+    --canvas-bg: #000000;
 }
 
 body {
@@ -48,12 +48,14 @@ h1 {
     margin: 0;
     background: linear-gradient(135deg, #818cf8, #c084fc);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .canvas-wrapper {
     position: relative;
-    background-color: var(--canvas-bg);
+    background-color: #000000;
+    /* 全局黑色底 */
     border-radius: 8px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     cursor: crosshair;
@@ -63,6 +65,28 @@ h1 {
 
 canvas {
     display: block;
+    position: relative;
+    z-index: 2;
+    background: transparent;
+    /* 畫布透明，方便看到底下的參考層 */
+}
+
+.reference-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.3;
+    pointer-events: none;
+    filter: brightness(0.7) contrast(1.2);
+}
+
+.reference-layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .toolbar {
@@ -133,4 +157,73 @@ button.primary:hover {
 
 .color-option.active {
     border-color: var(--accent-color);
+}
+
+.drafts-gallery {
+    width: 100%;
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: auto;
+    overflow: hidden;
+}
+
+.drafts-gallery h3 {
+    font-size: 0.8rem;
+    margin: 0 0 10px 0;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.gallery-items {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.gallery-items::-webkit-scrollbar {
+    height: 4px;
+}
+
+.gallery-items::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.gallery-item {
+    flex: 0 0 100px;
+    aspect-ratio: 1;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s;
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-item span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px;
+    text-align: center;
 }

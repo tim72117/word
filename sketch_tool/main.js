@@ -5,11 +5,15 @@ const colorOptions = document.querySelectorAll('.color-option');
 const clearBtn = document.getElementById('clearBtn');
 const undoBtn = document.getElementById('undoBtn');
 const saveBtn = document.getElementById('saveBtn');
+const saveAndClearBtn = document.getElementById('saveAndClearBtn');
+const galleryItems = document.getElementById('galleryItems');
+const referenceLayer = document.getElementById('referenceLayer');
 
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 let history = [];
+let sketchCounter = 1; // 新增序號計數器
 
 // 初始化畫布大小
 function resizeCanvas() {
@@ -20,17 +24,16 @@ function resizeCanvas() {
     canvas.style.width = `${size}px`;
     canvas.style.height = `${size}px`;
 
-    // 底色白色
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 初始狀態為透明
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 resizeCanvas();
 
-// 設置初始畫筆
+// 設置初始畫筆 (白色線條在黑底上)
 ctx.lineJoin = 'round';
 ctx.lineCap = 'round';
-ctx.strokeStyle = '#000000';
+ctx.strokeStyle = '#ffffff';
 ctx.lineWidth = brushSize.value;
 
 function saveHistory() {
@@ -90,8 +93,8 @@ canvas.addEventListener('touchend', stopDrawing);
 // 清除畫布
 clearBtn.addEventListener('click', () => {
     saveHistory();
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    referenceLayer.innerHTML = ''; // 清除參考層
 });
 
 // 復原
@@ -116,10 +119,61 @@ colorOptions.forEach(opt => {
     });
 });
 
-// 儲存為 PNG
-saveBtn.addEventListener('click', () => {
+// 儲存邏輯
+function saveToPNG(autoClear = false) {
+    // 格式化序號 (例如 01, 02...)
+    const folderName = "sketch";
+    const paddedIndex = sketchCounter.toString().padStart(2, '0');
+    const filename = `${folderName}_${paddedIndex}.png`;
+
+    // 合成最終影像 (由於畫布現在是透明的，導出時需要補上黑底以符合 ControlNet 需求)
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 1024;
+    tempCanvas.height = 1024;
+    const tCtx = tempCanvas.getContext('2d');
+
+    tCtx.fillStyle = '#000000';
+    tCtx.fillRect(0, 0, 1024, 1024);
+    tCtx.drawImage(canvas, 0, 0);
+
+    const finalDataURL = tempCanvas.toDataURL('image/png');
+
+    // 下載
     const link = document.createElement('a');
-    link.download = `sketch_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.download = filename;
+    link.href = finalDataURL;
     link.click();
-});
+
+    // 加到預覽區
+    updateGallery(finalDataURL, filename);
+
+    // 增加計數器
+    sketchCounter++;
+
+    if (autoClear) {
+        // 將目前的畫稿設定為底層內容 (洋蔥皮)
+        referenceLayer.innerHTML = `<img src="${finalDataURL}">`;
+
+        saveHistory();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+function updateGallery(dataURL, filename) {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    item.innerHTML = `
+        <img src="${dataURL}" alt="${filename}">
+        <span>${new Date().toLocaleTimeString()}</span>
+    `;
+    item.onclick = () => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataURL;
+        link.click();
+    };
+    galleryItems.prepend(item);
+}
+
+saveBtn.addEventListener('click', () => saveToPNG(false));
+saveAndClearBtn.addEventListener('click', () => saveToPNG(true));

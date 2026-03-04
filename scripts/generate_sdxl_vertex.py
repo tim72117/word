@@ -30,13 +30,28 @@ def generate_sdxl_morph(endpoint_id, input_image_path, prompt, output_path, proj
     }
 
     if control_image_path:
-        print(f"Applying ControlNet Sketch: {control_image_path}")
-        encoded_control = encode_image(control_image_path)
-        instance["control_image"] = encoded_control
-        instance["controlnet_conditioning_scale"] = float(control_scale)
+        # 支援多重控制 (逗號分隔的路徑或列表)
+        if isinstance(control_image_path, str):
+            ctrl_paths = [p.strip() for p in control_image_path.split(",")]
+        else:
+            ctrl_paths = control_image_path
+            
+        print(f"Applying Multi-ControlNet: {ctrl_paths}")
+        encoded_controls = [encode_image(p) for p in ctrl_paths]
+        
+        # 處理權重 (逗號分隔或列表)
+        if isinstance(control_scale, str):
+            ctrl_scales = [float(s.strip()) for s in control_scale.split(",")]
+        elif isinstance(control_scale, (float, int)):
+            ctrl_scales = [float(control_scale)] * len(ctrl_paths)
+        else:
+            ctrl_scales = control_scale
+
+        instance["image"] = encoded_controls 
+        instance["controlnet_conditioning_scale"] = ctrl_scales
 
     print(f"Connecting to Endpoint: {endpoint_id} in {location}")
-    print(f"Parameters: Steps={num_inference_steps}, Strength={strength}, Guidance={guidance_scale}, ControlScale={control_scale}")
+    print(f"Parameters: Steps={num_inference_steps}, Strength={strength}, Guidance={guidance_scale}, ControlScales={instance.get('controlnet_conditioning_scale', control_scale)}")
     print(f"Prompt: {prompt}")
 
     try:
@@ -49,29 +64,33 @@ def generate_sdxl_morph(endpoint_id, input_image_path, prompt, output_path, proj
 
         print(f"Received {len(response.predictions)} prediction(s).")
 
+        from google.cloud import storage
+        storage_client = storage.Client(project=project_id)
+
         for i, prediction in enumerate(response.predictions):
-            if isinstance(prediction, dict):
-                image_data_str = prediction.get('b64') or prediction.get('image') or prediction.get('bytes') or prediction.get('output')
-                if not image_data_str:
-                    for k, v in prediction.items():
-                        if isinstance(v, str) and len(v) > 100:
-                            image_data_str = v
-                            break
-            else:
-                image_data_str = prediction
-
-            if not image_data_str:
-                print(f"Error: Could not extract image data from prediction {i}")
-                continue
-
-            try:
-                image_data = base64.b64decode(image_data_str)
-                with open(output_path, "wb") as f:
-                    f.write(image_data)
-                print(f"Successfully saved to: {output_path}")
+            gcs_uri = prediction.get("gcs_uri")
+            image_data_str = prediction.get("image")
+            
+            if gcs_uri:
+                print(f"Downloading from GCS: {gcs_uri}")
+                bucket_name = gcs_uri.split("/")[2]
+                blob_path = "/".join(gcs_uri.split("/")[3:])
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
+                blob.download_to_filename(output_path)
+                print(f"Successfully saved GCS result to: {output_path}")
                 break
-            except Exception as b64e:
-                print(f"Base64 decode error on prediction {i}: {b64e}")
+            elif image_data_str:
+                try:
+                    image_data = base64.b64decode(image_data_str)
+                    with open(output_path, "wb") as f:
+                        f.write(image_data)
+                    print(f"Successfully saved base64 result to: {output_path}")
+                    break
+                except Exception as b64e:
+                    print(f"Base64 decode error: {b64e}")
+            else:
+                print("Error: Predicted result contains neither GCS URI nor Base64 image.")
 
     except Exception as e:
         print(f"Execution Error: {e}")

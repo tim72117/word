@@ -5,7 +5,6 @@ import json
 from google.cloud import aiplatform
 
 def encode_image(image_path):
-    """將影像檔案轉換為 Base64 字串。"""
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
@@ -31,28 +30,14 @@ def generate_sdxl_morph(endpoint_id, input_image_path, prompt, output_path, proj
     }
 
     if control_image_path:
-        # 支援多重控制 (逗號分隔的路徑或列表)
-        if isinstance(control_image_path, str):
-            ctrl_paths = [p.strip() for p in control_image_path.split(",")]
-        else:
-            ctrl_paths = control_image_path
-
-        print(f"Applying Multi-ControlNet: {ctrl_paths}")
-        encoded_controls = [encode_image(p) for p in ctrl_paths]
-
-        # 處理權重 (逗號分隔或列表)
-        if isinstance(control_scale, str):
-            ctrl_scales = [float(s.strip()) for s in control_scale.split(",")]
-        elif isinstance(control_scale, (float, int)):
-            ctrl_scales = [float(control_scale)] * len(ctrl_paths)
-        else:
-            ctrl_scales = control_scale
-
-        instance["image"] = encoded_controls
-        instance["controlnet_conditioning_scale"] = ctrl_scales
+        print(f"Applying ControlNet: {control_image_path}")
+        encoded_control = encode_image(control_image_path)
+        # 確保鍵值命名與 handler.py 一致
+        instance["image"] = encoded_control 
+        instance["controlnet_conditioning_scale"] = float(control_scale)
 
     print(f"Connecting to Endpoint: {endpoint_id} in {location}")
-    print(f"Parameters: Steps={num_inference_steps}, Strength={strength}, Guidance={guidance_scale}, ControlScales={instance.get('controlnet_conditioning_scale', control_scale)}")
+    print(f"Parameters: Steps={num_inference_steps}, Strength={strength}, Guidance={guidance_scale}, ControlScale={control_scale}")
     print(f"Prompt: {prompt}")
 
     try:
@@ -65,22 +50,33 @@ def generate_sdxl_morph(endpoint_id, input_image_path, prompt, output_path, proj
 
         print(f"Received {len(response.predictions)} prediction(s).")
 
-        for i, prediction in enumerate(response.predictions):
-            # 支援多種可能的鍵名 (handler 不同版本可能不同)
-            image_data_str = prediction.get("image") or prediction.get("b64") or prediction.get("bytes")
+        from google.cloud import storage
+        storage_client = storage.Client(project=project_id)
 
-            if image_data_str:
+        for i, prediction in enumerate(response.predictions):
+            gcs_uri = prediction.get("gcs_uri")
+            image_data_str = prediction.get("image")
+            
+            if gcs_uri:
+                print(f"Downloading from GCS: {gcs_uri}")
+                bucket_name = gcs_uri.split("/")[2]
+                blob_path = "/".join(gcs_uri.split("/")[3:])
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
+                blob.download_to_filename(output_path)
+                print(f"Successfully saved GCS result to: {output_path}")
+                break
+            elif image_data_str:
                 try:
-                    print(f"正在將 Base64 數據存檔至: {output_path}")
                     image_data = base64.b64decode(image_data_str)
                     with open(output_path, "wb") as f:
                         f.write(image_data)
-                    print("儲存成功。")
+                    print(f"Successfully saved base64 result to: {output_path}")
                     break
                 except Exception as b64e:
-                    print(f"Base64 解碼或寫檔錯誤: {b64e}")
+                    print(f"Base64 decode error: {b64e}")
             else:
-                print(f"錯誤：預測結果 {i} 中找不到有效的影像數據。")
+                print("Error: Predicted result contains neither GCS URI nor Base64 image.")
 
     except Exception as e:
         print(f"Execution Error: {e}")

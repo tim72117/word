@@ -1,0 +1,270 @@
+:root {
+    --bg-color: #05070a;
+    --accent-gold: #ffd700;
+    --card-width: 100px;
+    /* 縮小一點以適應手機比例 */
+    --card-height: 145px;
+    --card-radius: 8px;
+    --perspective: 1000px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    /* 外部背景為全黑 */
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 手機容器 */
+.mobile-wrapper {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background-color: var(--bg-color);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border: 8px solid #1a1a1a;
+    border-radius: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+.scene {
+    position: relative;
+    flex: 1;
+    perspective: var(--perspective);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1a2333 0%, #05070a 100%);
+    overflow: hidden;
+}
+
+.ambient-vfx {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+}
+
+/* 牌堆樣式 */
+.deck-container {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-50px) scale(0.8);
+    /* 調整角度，更容易看到側面厚度 */
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    z-index: 10;
+}
+
+.deck-container:hover {
+    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-30px) scale(0.85);
+}
+
+.card {
+    width: var(--card-width);
+    height: var(--card-height);
+    background-color: #222;
+    border-radius: var(--card-radius);
+    position: absolute;
+    left: calc(var(--card-width) / -2);
+    top: calc(var(--card-height) / -2);
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.deck-base {
+    background: #e5e7eb;
+    /* 淺灰色模擬卡片側邊 */
+    border: 1px solid #d1d5db;
+    box-shadow: none;
+    /* 中間層不加陰影，避免混亂 */
+}
+
+/* 只有最底層的一張加陰影 */
+.deck-base:nth-child(1) {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+}
+
+.main-deck {
+    z-index: 5;
+}
+
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    border: 3px solid var(--accent-gold);
+    border-radius: var(--card-radius);
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-back::after {
+    content: '☯';
+    font-size: 2.2rem;
+    color: var(--accent-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.card-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--card-radius);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.02);
+    }
+}
+
+.deck-hint {
+    position: absolute;
+    top: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 300;
+}
+
+/* 抽取卡牌動畫 */
+.hand-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+    transform-style: preserve-3d;
+}
+
+.drawn-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--card-width);
+    height: var(--card-height);
+    margin-left: calc(var(--card-width) / -2);
+    margin-top: calc(var(--card-height) / -2);
+    transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+    transform-style: preserve-3d;
+    opacity: 0;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.face-front {
+    background-image: url('card_face.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--accent-gold);
+}
+
+.face-back {
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    border: 3px solid var(--accent-gold);
+    transform: rotateY(180deg);
+}
+
+/* 點選放大效果 */
+.drawn-card.focused {
+    z-index: 1000 !important;
+    transform: translate(0, 0) translateZ(400px) rotateX(0deg) rotateZ(0deg) scale(2.0) !important;
+    /* 更小的比例與距離，保留足夠邊距 */
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+}
+
+.focus-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: none !important;
+    /* 強制移除背景色 */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s;
+    z-index: 900;
+}
+
+.scene.has-focus .focus-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 控制按鈕 */
+.controls {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    bottom: 30px;
+    z-index: 100;
+}
+
+#resetBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+#resetBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}

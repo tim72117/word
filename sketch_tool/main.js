@@ -8,29 +8,29 @@ const saveBtn = document.getElementById('saveBtn');
 const saveAndClearBtn = document.getElementById('saveAndClearBtn');
 const galleryItems = document.getElementById('galleryItems');
 const referenceLayer = document.getElementById('referenceLayer');
+const imageLoader = document.getElementById('imageLoader');
+const loadBtn = document.getElementById('loadBtn');
+const saveBackBtn = document.getElementById('saveBackBtn');
 
 let isDrawing = false;
+let currentFilename = null;
 let lastX = 0;
 let lastY = 0;
 let history = [];
-let sketchCounter = 1; // 新增序號計數器
+let sketchCounter = 1;
 
 // 初始化畫布大小
 function resizeCanvas() {
-    // 固定的正方形比例 1:1，適合 Imagen 模型輸入
     const size = Math.min(window.innerHeight * 0.6, window.innerWidth * 0.8);
-    canvas.width = 1024; // 固定的內部解析度
+    canvas.width = 1024;
     canvas.height = 1024;
     canvas.style.width = `${size}px`;
     canvas.style.height = `${size}px`;
-
-    // 初始狀態為透明
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 resizeCanvas();
 
-// 設置初始畫筆 (白色線條在黑底上)
 ctx.lineJoin = 'round';
 ctx.lineCap = 'round';
 ctx.strokeStyle = '#ffffff';
@@ -49,15 +49,12 @@ function startDrawing(e) {
 
 function draw(e) {
     if (!isDrawing) return;
-
     const [x, y] = getMousePos(e);
-
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
-    ctx.lineWidth = brushSize.value * (1024 / parseInt(canvas.style.width)); // 補償縮放
+    ctx.lineWidth = brushSize.value * (1024 / parseInt(canvas.style.width));
     ctx.stroke();
-
     [lastX, lastY] = [x, y];
 }
 
@@ -65,39 +62,28 @@ function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    return [
-        (clientX - rect.left) * scaleX,
-        (clientY - rect.top) * scaleY
-    ];
+    return [(clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY];
 }
 
-function stopDrawing() {
-    isDrawing = false;
-}
+function stopDrawing() { isDrawing = false; }
 
-// 事件監聽
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
-// 觸控支援
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
 canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
 canvas.addEventListener('touchend', stopDrawing);
 
-// 清除畫布
 clearBtn.addEventListener('click', () => {
     saveHistory();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    referenceLayer.innerHTML = ''; // 清除參考層
+    referenceLayer.innerHTML = '';
 });
 
-// 復原
 undoBtn.addEventListener('click', () => {
     if (history.length > 0) {
         const lastState = history.pop();
@@ -110,7 +96,6 @@ undoBtn.addEventListener('click', () => {
     }
 });
 
-// 色彩選擇
 colorOptions.forEach(opt => {
     opt.addEventListener('click', () => {
         colorOptions.forEach(o => o.classList.remove('active'));
@@ -119,41 +104,26 @@ colorOptions.forEach(opt => {
     });
 });
 
-// 儲存邏輯
 function saveToPNG(autoClear = false) {
-    // 格式化序號 (例如 01, 02...)
     const folderName = "sketch";
     const paddedIndex = sketchCounter.toString().padStart(2, '0');
     const filename = `${folderName}_${paddedIndex}.png`;
-
-    // 合成最終影像 (由於畫布現在是透明的，導出時需要補上黑底以符合 ControlNet 需求)
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 1024;
     tempCanvas.height = 1024;
     const tCtx = tempCanvas.getContext('2d');
-
     tCtx.fillStyle = '#000000';
     tCtx.fillRect(0, 0, 1024, 1024);
     tCtx.drawImage(canvas, 0, 0);
-
     const finalDataURL = tempCanvas.toDataURL('image/png');
-
-    // 下載
     const link = document.createElement('a');
     link.download = filename;
     link.href = finalDataURL;
     link.click();
-
-    // 加到預覽區
     updateGallery(finalDataURL, filename);
-
-    // 增加計數器
     sketchCounter++;
-
     if (autoClear) {
-        // 將目前的畫稿設定為底層內容 (洋蔥皮)
         referenceLayer.innerHTML = `<img src="${finalDataURL}">`;
-
         saveHistory();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -177,3 +147,58 @@ function updateGallery(dataURL, filename) {
 
 saveBtn.addEventListener('click', () => saveToPNG(false));
 saveAndClearBtn.addEventListener('click', () => saveToPNG(true));
+
+loadBtn.addEventListener('click', () => imageLoader.click());
+
+imageLoader.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentFilename = file.name;
+    saveBackBtn.style.display = 'inline-block';
+    saveBackBtn.textContent = `直接存回 (${file.name})`;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+            saveHistory();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+            const w = img.width * ratio;
+            const h = img.height * ratio;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, x, y, w, h);
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+saveBackBtn.addEventListener('click', async () => {
+    if (!currentFilename) return;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 1024;
+    tempCanvas.height = 1024;
+    const tCtx = tempCanvas.getContext('2d');
+    tCtx.fillStyle = '#000000';
+    tCtx.fillRect(0, 0, 1024, 1024);
+    tCtx.drawImage(canvas, 0, 0);
+    const finalDataURL = tempCanvas.toDataURL('image/png');
+    try {
+        const response = await fetch('http://localhost:8000/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: finalDataURL, filename: currentFilename })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert(`✅ 已成功回存至: ${currentFilename}`);
+        } else {
+            alert(`❌ 儲存失敗: ${result.message}`);
+        }
+    } catch (err) {
+        alert(`❌ 伺服器錯誤: ${err.message}`);
+    }
+});

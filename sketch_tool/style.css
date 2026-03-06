@@ -1,9 +1,14 @@
+* {
+    box-sizing: border-box;
+    /* 統一使用 border-box 簡化計算 */
+}
+
 :root {
-    --bg-color: #0f1115;
-    --panel-bg: rgba(30, 32, 38, 0.8);
+    --bg-color: #1a1c20;
+    --panel-bg: rgba(30, 32, 38, 0.9);
     --accent-color: #6366f1;
     --text-color: #e2e8f0;
-    --border-color: rgba(255, 255, 255, 0.1);
+    --border-color: rgba(255, 255, 255, 0.15);
     --canvas-bg: #000000;
 }
 
@@ -15,19 +20,22 @@ body {
     color: var(--text-color);
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
+    align-items: flex-start;
+    min-height: 100vh;
+    overflow: auto;
 }
 
 .studio-container {
     position: relative;
-    width: 90vw;
-    height: 90vh;
+    width: 100%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
+    padding: 20px 0;
+    overflow-y: auto;
+    /* 允許垂直滾動整個開發工具 */
 }
 
 header {
@@ -54,21 +62,36 @@ h1 {
 
 .canvas-wrapper {
     position: relative;
-    background-color: #000000;
-    /* 全局黑色底 */
-    border-radius: 8px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    background-color: var(--canvas-bg);
+    border-radius: 12px;
+    border: 3px solid #2d2f36;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 30px 60px rgba(0, 0, 0, 0.7);
     cursor: crosshair;
     overflow: hidden;
+    /* 我們不再需要內部滾動，讓整個頁面滾動就好 */
     line-height: 0;
+    transition: border-color 0.3s ease;
+    /* 尺寸改為自適應視窗高度，維持比例 */
+    flex: 0 0 auto;
+    height: 65vh;
+    /* 讓整個工具能稍微塞進一個畫面 */
+    max-height: 1286px;
+    aspect-ratio: 726 / 1286;
+    /* 含邊框的比例 */
+    max-width: 95vw;
+    box-sizing: border-box;
+}
+
+.canvas-wrapper:hover {
+    border-color: var(--accent-color);
+    /* 滑鼠懸停時點亮邊框 */
 }
 
 canvas {
     display: block;
-    position: relative;
-    z-index: 2;
-    background: transparent;
-    /* 畫布透明，方便看到底下的參考層 */
+    width: 100%;
+    height: 100%;
 }
 
 .reference-layer {
@@ -161,13 +184,15 @@ button.primary:hover {
 
 .drafts-gallery {
     width: 100%;
+    max-width: 800px;
+    min-height: 100px;
     background: var(--panel-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 15px;
-    margin-top: auto;
+    padding: 10px 15px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .drafts-gallery h3 {
@@ -195,8 +220,8 @@ button.primary:hover {
 }
 
 .gallery-item {
-    flex: 0 0 100px;
-    aspect-ratio: 1;
+    flex: 0 0 80px;
+    aspect-ratio: 9/16;
     background: white;
     border-radius: 6px;
     cursor: pointer;

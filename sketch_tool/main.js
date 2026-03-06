@@ -11,6 +11,8 @@ const referenceLayer = document.getElementById('referenceLayer');
 const imageLoader = document.getElementById('imageLoader');
 const loadBtn = document.getElementById('loadBtn');
 const saveBackBtn = document.getElementById('saveBackBtn');
+const saveToFolderBtn = document.getElementById('saveToFolderBtn');
+const charNameInput = document.getElementById('charNameInput');
 
 let isDrawing = false;
 let currentFilename = null;
@@ -19,17 +21,21 @@ let lastY = 0;
 let history = [];
 let sketchCounter = 1;
 
-// 初始化畫布大小
-function resizeCanvas() {
-    const size = Math.min(window.innerHeight * 0.6, window.innerWidth * 0.8);
-    canvas.width = 1024;
-    canvas.height = 1024;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// 固定畫布大小為手機比例 720x1280
+function initCanvas() {
+    canvas.width = 720;
+    canvas.height = 1280;
+
+    // 預設樣式不變，由 CSS 控制滾動與顯示
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = document.querySelector('.color-option.active')?.dataset.color || '#ffffff';
+    ctx.lineWidth = brushSize.value;
 }
 
-resizeCanvas();
+initCanvas();
+
+// removed resizeCanvas reference
 
 ctx.lineJoin = 'round';
 ctx.lineCap = 'round';
@@ -53,7 +59,7 @@ function draw(e) {
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
-    ctx.lineWidth = brushSize.value * (1024 / parseInt(canvas.style.width));
+    ctx.lineWidth = brushSize.value * (720 / canvas.clientWidth);
     ctx.stroke();
     [lastX, lastY] = [x, y];
 }
@@ -62,8 +68,8 @@ function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+    const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
     return [(clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY];
 }
 
@@ -74,8 +80,8 @@ canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); }, { passive: false });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
 canvas.addEventListener('touchend', stopDrawing);
 
 clearBtn.addEventListener('click', () => {
@@ -109,12 +115,12 @@ function saveToPNG(autoClear = false) {
     const paddedIndex = sketchCounter.toString().padStart(2, '0');
     const filename = `${folderName}_${paddedIndex}.png`;
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 1024;
-    tempCanvas.height = 1024;
+    tempCanvas.width = 720;
+    tempCanvas.height = 1280;
     const tCtx = tempCanvas.getContext('2d');
     tCtx.fillStyle = '#000000';
-    tCtx.fillRect(0, 0, 1024, 1024);
-    tCtx.drawImage(canvas, 0, 0);
+    tCtx.fillRect(0, 0, 720, 1280);
+    tCtx.drawImage(canvas, 0, 0, 720, 1280);
     const finalDataURL = tempCanvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = filename;
@@ -143,6 +149,7 @@ function updateGallery(dataURL, filename) {
         link.click();
     };
     galleryItems.prepend(item);
+    // no resize needed
 }
 
 saveBtn.addEventListener('click', () => saveToPNG(false));
@@ -179,12 +186,12 @@ imageLoader.addEventListener('change', (e) => {
 saveBackBtn.addEventListener('click', async () => {
     if (!currentFilename) return;
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 1024;
-    tempCanvas.height = 1024;
+    tempCanvas.width = 720;
+    tempCanvas.height = 1280;
     const tCtx = tempCanvas.getContext('2d');
     tCtx.fillStyle = '#000000';
-    tCtx.fillRect(0, 0, 1024, 1024);
-    tCtx.drawImage(canvas, 0, 0);
+    tCtx.fillRect(0, 0, 720, 1280);
+    tCtx.drawImage(canvas, 0, 0, 720, 1280);
     const finalDataURL = tempCanvas.toDataURL('image/png');
     try {
         const response = await fetch('http://localhost:8000/save', {
@@ -195,6 +202,45 @@ saveBackBtn.addEventListener('click', async () => {
         const result = await response.json();
         if (result.status === 'success') {
             alert(`✅ 已成功回存至: ${currentFilename}`);
+        } else {
+            alert(`❌ 儲存失敗: ${result.message}`);
+        }
+    } catch (err) {
+        alert(`❌ 伺服器錯誤: ${err.message}`);
+    }
+});
+
+saveToFolderBtn.addEventListener('click', async () => {
+    const charName = charNameInput.value.trim();
+    if (!charName) {
+        alert("⚠️ 請先輸入字名 (例如: 宛)");
+        return;
+    }
+
+    const filename = `sketch_${new Date().getTime()}.png`;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 720;
+    tempCanvas.height = 1280;
+    const tCtx = tempCanvas.getContext('2d');
+    tCtx.fillStyle = '#000000';
+    tCtx.fillRect(0, 0, 720, 1280);
+    tCtx.drawImage(canvas, 0, 0, 720, 1280);
+    const finalDataURL = tempCanvas.toDataURL('image/png');
+
+    try {
+        const response = await fetch('http://localhost:8000/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image: finalDataURL,
+                filename: filename,
+                folder: charName
+            })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert(`✅ 已成功存入資料夾: characters/${charName}/${filename}`);
+            updateGallery(finalDataURL, filename);
         } else {
             alert(`❌ 儲存失敗: ${result.message}`);
         }

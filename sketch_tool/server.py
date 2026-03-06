@@ -22,22 +22,30 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_data.decode('utf-8'))
                 image_data = data.get('image')
                 filename = data.get('filename')
+                folder = data.get('folder')  # 新增 folder 參數
 
                 if not image_data or not filename:
                     print("⚠️ Missing image or filename in request body")
                     self.send_error(400, "Missing image or filename")
                     return
 
-                print(f"📝 Attempting to save: {filename}")
-                # Remove the data:image/png;base64, part
-                header, encoded = image_data.split(",", 1)
-                img_bytes = base64.b64decode(encoded)
-
-                # Determine the absolute path.
-                if os.path.isabs(filename):
+                # 清理與建構存檔路徑
+                if folder:
+                    # 確保 folder 在專案根目錄下的 characters 目錄中
+                    # DIRECTORY 為 /Users/caitingyu/Documents/word/sketch_tool
+                    # 專案根目錄為 /Users/caitingyu/Documents/word
+                    project_root = os.path.dirname(DIRECTORY)
+                    target_dir = os.path.join(project_root, "characters", folder)
+                    
+                    if not os.path.exists(target_dir):
+                        print(f"📁 Creating directory: {target_dir}")
+                        os.makedirs(target_dir, exist_ok=True)
+                    
+                    save_path = os.path.join(target_dir, filename)
+                elif os.path.isabs(filename):
                     save_path = filename
                 else:
-                    # Default search in common places
+                    # 預設搜尋邏輯保持不變
                     possible_paths = [
                         os.path.join(DIRECTORY, filename),
                         os.path.join(DIRECTORY, "../gemini_ai_studio/scripts", filename),
@@ -49,12 +57,14 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
                         if os.path.exists(p):
                             save_path = p
                             found = True
-                            print(f"🔍 File found at: {save_path}")
                             break
                     
                     if not found:
                         save_path = possible_paths[0]
-                        print(f"⚠️ File not found in common paths, creating new at: {save_path}")
+
+                print(f"📝 Attempting to save to: {save_path}")
+                header, encoded = image_data.split(",", 1)
+                img_bytes = base64.b64decode(encoded)
 
                 with open(save_path, "wb") as f:
                     f.write(img_bytes)

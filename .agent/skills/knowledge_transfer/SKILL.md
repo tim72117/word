@@ -10,7 +10,7 @@ description: 記錄與傳承開發過程中的技術錯誤與解決方案 (Troub
 ## 核心指令
 1. **主動偵測錯誤**：每當執行腳本失敗或環境配置出錯，完成修正後應立即更新知識庫。
 2. **記錄放置邏輯 (重要)**：
-   - **優先權 1：放置於相關專屬 Skill**。若錯誤與特定領域功能（如 `image_generator`）直接相關，應標記在該 Skill 的 `SKILL.md` 的 `Troubleshooting` 章節中。
+   - **優先權 1：放置於相關專屬 Skill**。若錯誤或「工作流程」與特定領域功能（如 `image_generator`）直接相關，應標記在該 Skill 的 `SKILL.md` 的 `Troubleshooting` 或 `Workflow` 章節中。當對話中提到特定的工作步驟且其與某個 Skill 相關時，應立即將該流程寫入該 Skill。
    - **優先權 2：通用技術紀錄**。若錯誤屬於通用環境、通用基礎設施或無對應專屬 Skill，則記錄在 `knowledge_transfer/resources/` 下的專題文件中。
 3. **結構化記錄內容**：
    - **問題背景**：錯誤發生的環境與上下文。

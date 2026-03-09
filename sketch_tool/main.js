@@ -1,5 +1,8 @@
-const canvas = document.getElementById('sketchCanvas');
-const ctx = canvas.getContext('2d');
+const layoutCanvas = document.getElementById('sketchCanvas');
+const lCtx = layoutCanvas.getContext('2d');
+const inkCanvas = document.getElementById('calligraphyCanvas');
+const iCtx = inkCanvas.getContext('2d');
+
 const brushSize = document.getElementById('brushSize');
 const colorOptions = document.querySelectorAll('.color-option');
 const clearBtn = document.getElementById('clearBtn');
@@ -14,37 +17,42 @@ const saveBackBtn = document.getElementById('saveBackBtn');
 const saveToFolderBtn = document.getElementById('saveToFolderBtn');
 const charNameInput = document.getElementById('charNameInput');
 
+// Layer Toggles
+const layerLayoutBtn = document.getElementById('layerLayoutBtn');
+const layerCalligraphyBtn = document.getElementById('layerCalligraphyBtn');
+
 let isDrawing = false;
+let currentLayer = 'layout'; // 'layout' or 'calligraphy'
 let currentFilename = null;
 let lastX = 0;
 let lastY = 0;
-let history = [];
+let history = { layout: [], calligraphy: [] };
 let sketchCounter = 1;
 
-// 固定畫布大小為手機比例 720x1280
-function initCanvas() {
+function initCanvas(canvas, ctx) {
     canvas.width = 720;
     canvas.height = 1280;
-
-    // 預設樣式不變，由 CSS 控制滾動與顯示
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.strokeStyle = document.querySelector('.color-option.active')?.dataset.color || '#ffffff';
+    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = brushSize.value;
 }
 
-initCanvas();
+initCanvas(layoutCanvas, lCtx);
+initCanvas(inkCanvas, iCtx);
 
-// removed resizeCanvas reference
+function getActiveCtx() {
+    return currentLayer === 'layout' ? lCtx : iCtx;
+}
 
-ctx.lineJoin = 'round';
-ctx.lineCap = 'round';
-ctx.strokeStyle = '#ffffff';
-ctx.lineWidth = brushSize.value;
+function getActiveCanvas() {
+    return currentLayer === 'layout' ? layoutCanvas : inkCanvas;
+}
 
 function saveHistory() {
-    if (history.length > 20) history.shift();
-    history.push(canvas.toDataURL());
+    const hist = history[currentLayer];
+    if (hist.length > 20) hist.shift();
+    hist.push(getActiveCanvas().toDataURL());
 }
 
 function startDrawing(e) {
@@ -56,6 +64,8 @@ function startDrawing(e) {
 function draw(e) {
     if (!isDrawing) return;
     const [x, y] = getMousePos(e);
+    const ctx = getActiveCtx();
+    const canvas = getActiveCanvas();
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
@@ -65,6 +75,7 @@ function draw(e) {
 }
 
 function getMousePos(e) {
+    const canvas = getActiveCanvas();
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
@@ -75,28 +86,80 @@ function getMousePos(e) {
 
 function stopDrawing() { isDrawing = false; }
 
-canvas.addEventListener('mousedown', startDrawing);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDrawing);
-canvas.addEventListener('mouseout', stopDrawing);
+const calligraphyInput = document.getElementById('calligraphyInput');
+const fontSelect = document.getElementById('fontSelect');
+const addTextBtn = document.getElementById('addTextBtn');
 
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); }, { passive: false });
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
-canvas.addEventListener('touchend', stopDrawing);
+// Attach listeners to BOTH canvases to ensure capture
+[layoutCanvas, inkCanvas].forEach(c => {
+    c.addEventListener('mousedown', startDrawing);
+    c.addEventListener('mousemove', draw);
+    c.addEventListener('mouseup', stopDrawing);
+    c.addEventListener('mouseout', stopDrawing);
+    c.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); }, { passive: false });
+    c.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+    c.addEventListener('touchend', stopDrawing);
+});
+
+// Layer Switching Logic
+function switchLayer(layer) {
+    currentLayer = layer;
+    const inkOnlyGroups = document.querySelectorAll('.ink-only');
+    if (layer === 'layout') {
+        layerLayoutBtn.classList.add('active');
+        layerCalligraphyBtn.classList.remove('active');
+        document.body.classList.remove('calligraphy-mode');
+        // Layout uses white/grey/red
+        inkOnlyGroups.forEach(g => g.style.display = 'none');
+        // Ensure color matches layout
+        lCtx.strokeStyle = document.querySelector('.color-option.active:not(.ink-only)')?.dataset.color || '#ffffff';
+    } else {
+        layerLayoutBtn.classList.remove('active');
+        layerCalligraphyBtn.classList.add('active');
+        document.body.classList.add('calligraphy-mode');
+        // Calligraphy uses black
+        inkOnlyGroups.forEach(g => g.style.display = 'flex');
+        const blackOpt = document.querySelector('.ink-only.color-option');
+        if (blackOpt) {
+            colorOptions.forEach(o => o.classList.remove('active'));
+            blackOpt.classList.add('active');
+            iCtx.strokeStyle = '#000000';
+        }
+    }
+}
+
+addTextBtn.addEventListener('click', () => {
+    const text = calligraphyInput.value.trim();
+    if (!text) return;
+    saveHistory();
+    iCtx.clearRect(0, 0, 720, 1280); // Clear current ink for a clean text stamp
+    const font = fontSelect.value;
+    iCtx.fillStyle = '#000000';
+    iCtx.textAlign = 'center';
+    iCtx.textBaseline = 'middle';
+    iCtx.font = `600px ${font}`;
+    iCtx.fillText(text, 360, 640);
+});
+
+layerLayoutBtn.addEventListener('click', () => switchLayer('layout'));
+layerCalligraphyBtn.addEventListener('click', () => switchLayer('calligraphy'));
 
 clearBtn.addEventListener('click', () => {
     saveHistory();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    referenceLayer.innerHTML = '';
+    const ctx = getActiveCtx();
+    ctx.clearRect(0, 0, 720, 1280);
+    if (currentLayer === 'layout') referenceLayer.innerHTML = '';
 });
 
 undoBtn.addEventListener('click', () => {
-    if (history.length > 0) {
-        const lastState = history.pop();
+    const hist = history[currentLayer];
+    if (hist.length > 0) {
+        const lastState = hist.pop();
         const img = new Image();
         img.src = lastState;
         img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ctx = getActiveCtx();
+            ctx.clearRect(0, 0, 720, 1280);
             ctx.drawImage(img, 0, 0);
         };
     }
@@ -106,32 +169,70 @@ colorOptions.forEach(opt => {
     opt.addEventListener('click', () => {
         colorOptions.forEach(o => o.classList.remove('active'));
         opt.classList.add('active');
-        ctx.strokeStyle = opt.dataset.color;
+        getActiveCtx().strokeStyle = opt.dataset.color;
     });
 });
 
-function saveToPNG(autoClear = false) {
-    const folderName = "sketch";
+async function saveToPNG(autoClear = false) {
+    const charName = charNameInput.value.trim() || "sketch";
     const paddedIndex = sketchCounter.toString().padStart(2, '0');
-    const filename = `${folderName}_${paddedIndex}.png`;
+    const filename = currentLayer === 'calligraphy' ?
+        `calligraphy_${new Date().getTime()}.png` :
+        `${charName}_${paddedIndex}.png`;
+
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 720;
     tempCanvas.height = 1280;
     const tCtx = tempCanvas.getContext('2d');
-    tCtx.fillStyle = '#000000';
-    tCtx.fillRect(0, 0, 720, 1280);
-    tCtx.drawImage(canvas, 0, 0, 720, 1280);
+
+    if (currentLayer === 'layout') {
+        tCtx.fillStyle = '#000000';
+        tCtx.fillRect(0, 0, 720, 1280);
+        tCtx.drawImage(layoutCanvas, 0, 0);
+    } else {
+        // Calligraphy save: Transparent bg with black ink (or white bg if needed for assets)
+        tCtx.fillStyle = '#ffffff'; // Use white bg for standard ink assets
+        tCtx.fillRect(0, 0, 720, 1280);
+        tCtx.drawImage(inkCanvas, 0, 0);
+    }
+
     const finalDataURL = tempCanvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = finalDataURL;
-    link.click();
-    updateGallery(finalDataURL, filename);
+
+    // Auto detection for "Save to Folder" if charName is present
+    if (charName !== "sketch") {
+        await saveToServer(finalDataURL, filename, charName);
+    } else {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = finalDataURL;
+        link.click();
+        updateGallery(finalDataURL, filename);
+    }
+
     sketchCounter++;
     if (autoClear) {
-        referenceLayer.innerHTML = `<img src="${finalDataURL}">`;
+        if (currentLayer === 'layout') {
+            referenceLayer.innerHTML = `<img src="${finalDataURL}">`;
+        }
         saveHistory();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        getActiveCtx().clearRect(0, 0, 720, 1280);
+    }
+}
+
+async function saveToServer(dataURL, filename, folder) {
+    try {
+        const response = await fetch('http://localhost:8000/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: dataURL, filename: filename, folder: folder })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert(`✅ 已成功存入: characters/${folder}/${filename}`);
+            updateGallery(dataURL, filename);
+        }
+    } catch (err) {
+        alert(`❌ 儲存失敗: ${err.message}`);
     }
 }
 
@@ -149,33 +250,32 @@ function updateGallery(dataURL, filename) {
         link.click();
     };
     galleryItems.prepend(item);
-    // no resize needed
 }
 
 saveBtn.addEventListener('click', () => saveToPNG(false));
 saveAndClearBtn.addEventListener('click', () => saveToPNG(true));
-
 loadBtn.addEventListener('click', () => imageLoader.click());
 
 imageLoader.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
     currentFilename = file.name;
-    saveBackBtn.style.display = 'inline-block';
-    saveBackBtn.textContent = `直接存回 (${file.name})`;
     const reader = new FileReader();
     reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
             saveHistory();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+            const ctx = getActiveCtx();
+            ctx.clearRect(0, 0, 720, 1280);
+            const ratio = Math.min(720 / img.width, 1280 / img.height);
             const w = img.width * ratio;
             const h = img.height * ratio;
-            const x = (canvas.width - w) / 2;
-            const y = (canvas.height - h) / 2;
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const x = (720 - w) / 2;
+            const y = (1280 - h) / 2;
+            if (currentLayer === 'layout') {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 720, 1280);
+            }
             ctx.drawImage(img, x, y, w, h);
         };
         img.src = event.target.result;
@@ -183,68 +283,4 @@ imageLoader.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-saveBackBtn.addEventListener('click', async () => {
-    if (!currentFilename) return;
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 720;
-    tempCanvas.height = 1280;
-    const tCtx = tempCanvas.getContext('2d');
-    tCtx.fillStyle = '#000000';
-    tCtx.fillRect(0, 0, 720, 1280);
-    tCtx.drawImage(canvas, 0, 0, 720, 1280);
-    const finalDataURL = tempCanvas.toDataURL('image/png');
-    try {
-        const response = await fetch('http://localhost:8000/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: finalDataURL, filename: currentFilename })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            alert(`✅ 已成功回存至: ${currentFilename}`);
-        } else {
-            alert(`❌ 儲存失敗: ${result.message}`);
-        }
-    } catch (err) {
-        alert(`❌ 伺服器錯誤: ${err.message}`);
-    }
-});
-
-saveToFolderBtn.addEventListener('click', async () => {
-    const charName = charNameInput.value.trim();
-    if (!charName) {
-        alert("⚠️ 請先輸入字名 (例如: 宛)");
-        return;
-    }
-
-    const filename = `sketch_${new Date().getTime()}.png`;
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 720;
-    tempCanvas.height = 1280;
-    const tCtx = tempCanvas.getContext('2d');
-    tCtx.fillStyle = '#000000';
-    tCtx.fillRect(0, 0, 720, 1280);
-    tCtx.drawImage(canvas, 0, 0, 720, 1280);
-    const finalDataURL = tempCanvas.toDataURL('image/png');
-
-    try {
-        const response = await fetch('http://localhost:8000/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image: finalDataURL,
-                filename: filename,
-                folder: charName
-            })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            alert(`✅ 已成功存入資料夾: characters/${charName}/${filename}`);
-            updateGallery(finalDataURL, filename);
-        } else {
-            alert(`❌ 儲存失敗: ${result.message}`);
-        }
-    } catch (err) {
-        alert(`❌ 伺服器錯誤: ${err.message}`);
-    }
-});
+saveToFolderBtn.addEventListener('click', () => saveToPNG(false));

@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sketch Tool - Outline Master</title>
     <link rel="stylesheet" href="style.css?v=5">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@700&family=Zhi+Mang+Xing&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -29,18 +32,37 @@
         <div class="canvas-wrapper">
             <div id="referenceLayer" class="reference-layer"></div>
             <canvas id="sketchCanvas"></canvas>
+            <canvas id="calligraphyCanvas"></canvas>
         </div>
 
         <div class="toolbar">
             <div class="tool-group">
+                <label>圖層切換</label>
+                <button id="layerLayoutBtn" class="layer-btn active" data-layer="layout">佈局 (Layout)</button>
+                <button id="layerCalligraphyBtn" class="layer-btn" data-layer="calligraphy">書法 (Ink)</button>
+            </div>
+            <div class="tool-group ink-only" style="display: none;">
+                <label>書法字輸入</label>
+                <input type="text" id="calligraphyInput" placeholder="輸入字" style="width: 50px;">
+                <select id="fontSelect">
+                    <option value="'Ma Shan Zheng', cursive">毛筆草書 (Brush)</option>
+                    <option value="'Zhi Mang Xing', cursive">流暢行書 (Script)</option>
+                    <option value="'Noto Serif TC', serif">標準宋體 (Serif)</option>
+                    <option value="'STKaiti', '標楷體', apple-system">系統楷體 (Kaiti)</option>
+                </select>
+                <button id="addTextBtn" class="primary">置入畫布</button>
+            </div>
+            <div class="tool-group">
                 <label>筆刷大小</label>
-                <input type="range" id="brushSize" min="1" max="20" value="3">
+                <input type="range" id="brushSize" min="1" max="50" value="3">
             </div>
             <div class="tool-group">
                 <label>顏色</label>
                 <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
                 <div class="color-option" data-color="#888888" style="background: #888888;"></div>
                 <div class="color-option" data-color="#ff4444" style="background: #ff4444;"></div>
+                <div class="color-option ink-only" data-color="#000000"
+                    style="background: #000000; border: 1px solid #444; display: none;"></div>
             </div>
         </div>
         <div class="drafts-gallery">

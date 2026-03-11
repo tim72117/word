@@ -1,11 +1,11 @@
 :root {
     --bg-color: #05070a;
     --accent-gold: #ffd700;
-    --card-width: 100px;
-    /* 縮小一點以適應手機比例 */
-    --card-height: 145px;
-    --card-radius: 8px;
-    --perspective: 1000px;
+    --card-width: 768px;
+    /* 直接對齊圖片原始像素，確保渲染緩衝區最大化 */
+    --card-height: 1344px;
+    --card-radius: 40px;
+    --perspective: 1200px;
 }
 
 body {
@@ -39,12 +39,16 @@ body {
 .scene {
     position: relative;
     flex: 1;
+    -webkit-perspective: var(--perspective);
     perspective: var(--perspective);
     display: flex;
     justify-content: center;
     align-items: center;
     background: radial-gradient(circle at center, #1a2333 0%, #05070a 100%);
     overflow: hidden;
+    /* 避免 Safari 在高頻動畫下過度重繪 */
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
 }
 
 .ambient-vfx {
@@ -60,16 +64,18 @@ body {
 /* 牌堆樣式 */
 .deck-container {
     position: absolute;
+    -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
-    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-50px) scale(0.8);
-    /* 調整角度，更容易看到側面厚度 */
+    /* 配合 768px 寬度，使用 0.12 達成微縮精確大小 */
+    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-80px) scale(0.12);
     cursor: pointer;
     transition: transform 0.3s ease;
     z-index: 10;
+    will-change: transform;
 }
 
 .deck-container:hover {
-    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-30px) scale(0.85);
+    transform: rotateX(60deg) rotateZ(-10deg) translateZ(-60px) scale(0.13);
 }
 
 .card {
@@ -80,7 +86,10 @@ body {
     position: absolute;
     left: calc(var(--card-width) / -2);
     top: calc(var(--card-height) / -2);
+    -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
+    /* 初始縮小 0.13 倍，視覺上約 100px 寬，但保留原圖 768px 的渲染空間 */
+    transform: scale(0.13);
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -176,10 +185,12 @@ body {
     margin-left: calc(var(--card-width) / -2);
     margin-top: calc(var(--card-height) / -2);
     transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+    -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
     opacity: 0;
     cursor: pointer;
     pointer-events: auto;
+    will-change: transform, opacity;
 }
 
 .card-inner {
@@ -194,17 +205,34 @@ body {
     position: absolute;
     width: 100%;
     height: 100%;
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     border-radius: var(--card-radius);
     overflow: hidden;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    /* Safari 模糊修正：強制 GPU 渲染解析度 */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .face-front {
-    background-image: url('card_face.png');
-    background-size: cover;
-    background-position: center;
+    background-color: #1a1a1a;
     border: 2px solid var(--accent-gold);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.face-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    /* 強制填滿，我們已在 CSS 調整好比例 */
+    display: block;
+    /* 修正 Chrome/Safari 影像縮放像素損失 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .face-back {

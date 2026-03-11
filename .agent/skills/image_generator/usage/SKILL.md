@@ -14,8 +14,38 @@ This skill is for **using** existing tools to generate assets.
 
 | Backend | Best For... | Key Feature |
 | :--- | :--- | :--- |
+| **Antigravity** | **Fast Iteration & Testing** | **Internal `generate_image` tool**; no setup needed. |
+| **Gemini AI Studio** | Scripted Evolution | Python script `generate_gemini.py` for control |
 | **Vertex AI** | Complex Transmations | High-precision Img2Img control |
-| **Gemini AI Studio** | Fast Iteration | Quick generation and simple prompts |
+
+## Testing Phase Standard
+
+> [!TIP]
+> Use **Antigravity** for initial concept testing. Once the prompt is stable, you can switch to scripted backends for production consistency.
+
+## How to Call: Antigravity (Internal Tool)
+
+When using **Antigravity**, you utilize the built-in `generate_image` tool. 
+
+### Call Signature
+- `Prompt`: Comprehensive description (follow character-specific standards).
+- `ImagePaths`: (Optional) Use for **Img2Img** (Sketch -> Final). ALWAYS provide the full path to the reference sketch.
+- `ImageName`: Descriptive filename (e.g., `ge_final_render_v2`).
+
+### Usage Example
+```json
+{
+  "ImageName": "character_name_v1",
+  "ImagePaths": ["/full/path/to/sketch.png"],
+  "Prompt": "Detailed Gongbi style render... (Reference: 參考圖)"
+}
+```
+
+## How to Call: Scripted Backends
+Use the command line to invoke production scripts:
+```bash
+python3 scripts/generate_gemini.py --prompt "..." --input "path/to/img.png" --layout_only
+```
 
 ## Common Workflows
 

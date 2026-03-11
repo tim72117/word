@@ -10,7 +10,7 @@ let focusedCard = null;
 
 deck.addEventListener('click', () => {
     if (isDrawing || drawnCards.length > 0) return;
-    drawThreeCards();
+    drawSingleCard();
 });
 
 resetBtn.addEventListener('click', resetTest);
@@ -19,19 +19,16 @@ focusOverlay.addEventListener('click', () => {
     if (focusedCard) blurCard(focusedCard);
 });
 
-async function drawThreeCards() {
+async function drawSingleCard() {
     isDrawing = true;
 
     // 隱藏提示
     document.querySelector('.deck-hint').style.opacity = '0';
 
-    for (let i = 0; i < 3; i++) {
-        await drawOneCard(i);
-        await sleep(200); // 抽取間隔
-    }
+    await drawOneCard(0);
 
     await sleep(400); // 等待抽取動畫完成
-    fanOutCards();
+    centerCard();
     isDrawing = false;
 }
 
@@ -40,7 +37,7 @@ function drawOneCard(index) {
         const card = document.createElement('div');
         card.className = 'drawn-card';
 
-        // 初始位置在牌堆（遠處），配合 768px 基礎尺寸調小縮放
+        // 初始位置在牌堆（遠處），使用極小縮放配合 768px 物理尺寸
         card.style.transform = `rotateX(60deg) rotateZ(-10deg) translateZ(-50px) scale(0.13)`;
 
         card.innerHTML = `
@@ -68,7 +65,7 @@ function drawOneCard(index) {
         // 強制 reflow
         card.offsetHeight;
 
-        // 抽取效果：移動到中心上方
+        // 抽取效果：移動到中心上方，視覺維持中等大小
         card.style.opacity = '1';
         card.style.transform = `translateY(-150px) translateZ(100px) rotateX(0deg) scale(0.2)`;
 
@@ -90,18 +87,14 @@ function blurCard(card) {
     focusedCard = null;
 }
 
-function fanOutCards() {
-    const cardData = [
-        { x: -100, rotate: -15, y: 30 },
-        { x: 0, rotate: 0, y: 0 },
-        { x: 100, rotate: 15, y: 30 }
-    ];
-
-    drawnCards.forEach((card, i) => {
-        const data = cardData[i];
-        // 最終展開狀態：扇形，因基礎寬度 768px，需縮小至約 150px 的視覺大小
-        card.style.transform = `translateX(${data.x}px) translateY(${data.y}px) translateZ(150px) rotateZ(${data.rotate}deg) rotateX(0deg) scale(0.2)`;
-    });
+function centerCard() {
+    if (drawnCards.length > 0) {
+        const card = drawnCards[0];
+        // 最終狀態：位居正中
+        // 配合 768px 物理解像度，將縮放降至 0.33 以確保在 390px 寬的容器中四周皆有間距
+        // 只要物理像素足夠 (768px)，縮小顯示能保證絕對銳利
+        card.style.transform = `translateX(0px) translateY(0px) translateZ(300px) rotateZ(0deg) rotateX(0deg) scale(0.33)`;
+    }
 }
 
 function resetTest() {

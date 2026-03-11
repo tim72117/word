@@ -32,7 +32,7 @@ def generate_gemini_image(prompt, input_image_path=None, output_path="gemini_out
 
     client = genai.Client(api_key=api_key)
 
-    # 預設使用最新的 gemini-2.5-flash-image
+    # 預設使用 gemini-2.5-flash-image
     model_id = os.environ.get("GEMINI_MODEL_ID", "gemini-2.5-flash-image")
     
     print(f"🚀 正在連接 Gemini 模型: {model_id}")
@@ -55,11 +55,11 @@ def generate_gemini_image(prompt, input_image_path=None, output_path="gemini_out
         
         # 針對以圖生圖的引導提示
         if layout_only:
-            system_suffix = "\n\n【核心指令：純佈局解析模式】\n1. 請將提供的影像「僅」視為空間座標（Coordinate Map）與物件尺寸（Bounding Boxes）的熱圖。影像本身不包含任何視覺實體內容。\n2. **絕對禁止**：嚴禁複製、描摹或保留原圖中任何原始筆跡、手繪線條、雜訊、底色、或半透明色塊邊緣。最終成像必須是 100% 全新繪製的專業插畫。\n3. **替換邏輯**：請將草圖中的色塊區域「完全替換」為提示詞中描述的高品質 2D 遊戲物件。背景需根據主題全新生成，不可受到原圖黑色背景的干擾。"
+            system_suffix = "\n\n【核心指令：佈局解析與材質重構】\n1. 請將提供影像的輪廓視為空間佈局參考。白色區塊定義為主要動體，紅色區塊定義為目標環境。\n2. **藝術演進**：不要只是填色或描邊。請根據提示詞將這些區域「轉化」為具備光影、深度與材質感的 2D 插畫。例如將腳部渲染出骨骼與肌肉的張力感，將門戶渲染出木質或石質紋理。\n3. **背景處理**：背景應全新生成，與主體物產生層次感，不可僅為死板的填充。"
         else:
-            system_suffix = "\n\n請根據提供的影像與提示詞，生成高品質的影像。若有參考圖，請維持其核心構圖特徵並進行藝術演變。"
+            system_suffix = "\n\n請根據提供的影像與提示詞，進行深度藝術轉換。維持構圖的大致位置，但注入高品質的材質細節、動態光影與大氣效果。"
         contents[0] += system_suffix
-
+    
     print(f"🪄 正在生成影像...")
     
     try:
@@ -75,7 +75,7 @@ def generate_gemini_image(prompt, input_image_path=None, output_path="gemini_out
             print("⚠️ 模型未回傳任何候選結果，可能是被安全過濾器攔截。")
             if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
                 print(f"🔍 提示詞反饋: {response.prompt_feedback}")
-        elif response.candidates[0].content.parts:
+        elif response.candidates[0].content and response.candidates[0].content.parts:
             print(f"DEBUG: Parts found: {len(response.candidates[0].content.parts)}")
             for part in response.candidates[0].content.parts:
                 # 檢查是否有 inline_data 或 blob 包含影像

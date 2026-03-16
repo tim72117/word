@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sketch Tool - Outline Master</title>
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@700&family=Zhi+Mang+Xing&display=swap"
         rel="stylesheet">
@@ -18,11 +18,13 @@
             <div class="header-actions">
                 <input type="file" id="imageLoader" accept="image/*" style="display: none;">
                 <button id="loadBtn">載入圖檔</button>
+                <button id="loadWorkspaceBtn">切換工作區</button>
                 <button id="saveBackBtn" class="primary" style="display: none;">直接存回</button>
                 <button id="clearBtn">清除</button>
                 <button id="undoBtn">復原</button>
-                <input type="text" id="charNameInput" placeholder="字名 (如: 宛)"
-                    style="width: 80px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                <input type="text" id="charNameInput" placeholder="字名 (如: 宛)" style="display: none;">
+                <button id="saveInkBtn">儲存透明書法</button>
+                <button id="saveWorkspaceBtn" class="primary">儲存工作區</button>
                 <button id="saveToFolderBtn" class="primary">存入字資料夾</button>
                 <button id="saveBtn">儲存單張</button>
                 <button id="saveAndClearBtn" class="primary">儲存並繼續繪製</button>
@@ -31,8 +33,10 @@
 
         <div class="canvas-wrapper">
             <div id="referenceLayer" class="reference-layer"></div>
+            <canvas id="bgCanvas"></canvas>
             <canvas id="sketchCanvas"></canvas>
             <canvas id="calligraphyCanvas"></canvas>
+            <div id="textOverlayContainer"></div>
         </div>
 
         <div class="toolbar">
@@ -41,16 +45,39 @@
                 <button id="layerLayoutBtn" class="layer-btn active" data-layer="layout">佈局 (Layout)</button>
                 <button id="layerCalligraphyBtn" class="layer-btn" data-layer="calligraphy">書法 (Ink)</button>
             </div>
-            <div class="tool-group ink-only" style="display: none;">
+            <div class="tool-group calli-text-group" style="display: none;">
                 <label>書法字輸入</label>
-                <input type="text" id="calligraphyInput" placeholder="輸入字" style="width: 50px;">
-                <select id="fontSelect">
+                <input type="text" id="calligraphyInput" placeholder="輸入字">
+                <select id="fontSelect" style="width: 120px;">
+                    <option value="'MasaFont', cursive">正風毛筆 (Masa)</option>
                     <option value="'Ma Shan Zheng', cursive">毛筆草書 (Brush)</option>
                     <option value="'Zhi Mang Xing', cursive">流暢行書 (Script)</option>
                     <option value="'Noto Serif TC', serif">標準宋體 (Serif)</option>
                     <option value="'STKaiti', '標楷體', apple-system">系統楷體 (Kaiti)</option>
                 </select>
+                <select id="fontWeightSelect" style="width: 80px;">
+                    <option value="200">極細 200</option>
+                    <option value="300">細體 300</option>
+                    <option value="400" selected>標準 400</option>
+                    <option value="500">中等 500</option>
+                    <option value="700">粗體 700</option>
+                </select>
                 <button id="addTextBtn" class="primary">置入畫布</button>
+            </div>
+            <div class="tool-group rotate-controls" style="display: none;">
+                <label>3D 旋轉</label>
+                <div class="control-item">
+                    <span>X</span>
+                    <input type="range" id="rotateX" min="-180" max="180" value="0">
+                </div>
+                <div class="control-item">
+                    <span>Y</span>
+                    <input type="range" id="rotateY" min="-180" max="180" value="0">
+                </div>
+                <div class="control-item">
+                    <span>Z</span>
+                    <input type="range" id="rotateZ" min="-180" max="180" value="0">
+                </div>
             </div>
             <div class="tool-group">
                 <label>筆刷大小</label>
@@ -61,8 +88,8 @@
                 <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
                 <div class="color-option" data-color="#888888" style="background: #888888;"></div>
                 <div class="color-option" data-color="#ff4444" style="background: #ff4444;"></div>
-                <div class="color-option ink-only" data-color="#000000"
-                    style="background: #000000; border: 1px solid #444; display: none;"></div>
+                <div class="color-option" data-color="#000000" style="background: #000000; border: 1px solid #444;">
+                </div>
             </div>
         </div>
         <div class="drafts-gallery">
@@ -70,7 +97,22 @@
             <div id="galleryItems" class="gallery-items"></div>
         </div>
     </div>
-    <script src="main.js?v=5"></script>
+    <div id="toastContainer"></div>
+
+    <!-- 工作區選取彈窗 -->
+    <div id="workspaceModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>切換工作區</h2>
+            <div id="workspaceList" class="workspace-list">
+                <!-- 由 JS 動態填充 -->
+            </div>
+            <div class="modal-actions">
+                <button id="closeModalBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js?v=6"></script>
 </body>
 
 </html>

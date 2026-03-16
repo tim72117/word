@@ -14,7 +14,46 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         print(f"📥 Received POST request: {self.path}")
-        if self.path == '/save':
+        if self.path == '/list':
+            try:
+                project_root = os.path.dirname(DIRECTORY)
+                chars_dir = os.path.join(project_root, "characters")
+                dirs = []
+                if os.path.exists(chars_dir):
+                    dirs = [d for d in os.listdir(chars_dir) if os.path.isdir(os.path.join(chars_dir, d)) and not d.startswith('.')]
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "folders": sorted(dirs)}).encode('utf-8'))
+            except Exception as e:
+                self.send_error(500, str(e))
+
+        elif self.path == '/load':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                folder = data.get('folder')
+                project_root = os.path.dirname(DIRECTORY)
+                target_dir = os.path.join(project_root, "characters", folder)
+                config_path = os.path.join(target_dir, ".sketch_config.json")
+                
+                response_data = {"status": "success", "config": None}
+                if os.path.exists(config_path):
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        response_data["config"] = json.load(f)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            except Exception as e:
+                self.send_error(500, str(e))
+
+        elif self.path == '/save':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             
@@ -22,7 +61,11 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_data.decode('utf-8'))
                 image_data = data.get('image')
                 filename = data.get('filename')
-                folder = data.get('folder')  # 新增 folder 參數
+                folder = data.get('folder')
+                config = data.get('config') # 工作區隱藏設定
+                ink_image = data.get('inkImage') # 獨立書法文字圖層
+                brush_image = data.get('brushImage') # 手寫手繪圖層 (含 Layout 或 Ink 筆跡)
+                is_workspace_sync = data.get('isWorkspaceSync', False)
 
                 if not image_data or not filename:
                     print("⚠️ Missing image or filename in request body")
@@ -66,10 +109,37 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
                 header, encoded = image_data.split(",", 1)
                 img_bytes = base64.b64decode(encoded)
 
-                with open(save_path, "wb") as f:
-                    f.write(img_bytes)
+                if not is_workspace_sync:
+                    with open(save_path, "wb") as f:
+                        f.write(img_bytes)
+                    print(f"✅ Successfully saved composite to: {save_path}")
+                else:
+                    print(f"🔄 Workspace sync for: {folder} (omitting composite)")
+                if folder and ink_image:
+                    ink_path = os.path.join(target_dir, "ink.png")
+                    _, encoded_ink = ink_image.split(",", 1)
+                    ink_bytes = base64.b64decode(encoded_ink)
+                    with open(ink_path, "wb") as f:
+                        f.write(ink_bytes)
+                    print(f"✒️ Saved calligraphy to: {ink_path}")
 
-                print(f"✅ Successfully saved {len(img_bytes)} bytes to: {save_path}")
+                # 如果有提供手寫筆跡，則存為固定的 brush.png
+                if folder and brush_image:
+                    brush_path = os.path.join(target_dir, "brush.png")
+                    _, encoded_brush = brush_image.split(",", 1)
+                    brush_bytes = base64.b64decode(encoded_brush)
+                    with open(brush_path, "wb") as f:
+                        f.write(brush_bytes)
+                    print(f"🖌️ Saved brush stroke to: {brush_path}")
+
+                # 如果有提供工作區設定，則存為 .sketch_config.json
+                if folder and config:
+                    config_path = os.path.join(target_dir, ".sketch_config.json")
+                    with open(config_path, "w", encoding="utf-8") as f:
+                        json.dump(config, f, ensure_ascii=False, indent=2)
+                    print(f"⚙️ Saved workspace config to: {config_path}")
+
+                print(f"✅ Successfully saved composite to: {save_path}")
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')

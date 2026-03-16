@@ -223,16 +223,25 @@ body {
 }
 
 .face-front img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: fill;
-    /* 強制填滿，我們已在 CSS 調整好比例 */
+    object-fit: contain;
     display: block;
-    /* 修正 Chrome/Safari 影像縮放像素損失 */
     image-rendering: -webkit-optimize-contrast;
-    image-rendering: auto;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+}
+
+.bg-layer {
+    z-index: 1;
+}
+
+.ink-layer {
+    z-index: 2;
+    pointer-events: none;
 }
 
 .face-back {
@@ -266,6 +275,49 @@ body {
 .scene.has-focus .focus-overlay {
     opacity: 1;
     visibility: visible;
+}
+
+/* 說明文字面板 */
+.card-info-panel {
+    position: absolute;
+    bottom: 90px;
+    left: 10%;
+    width: 80%;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(10, 15, 25, 0.75);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    pointer-events: none;
+    z-index: 50;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.scene.show-info .card-info-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.card-info-panel h3 {
+    margin: 0 0 10px 0;
+    color: var(--accent-gold);
+    font-size: 1.6rem;
+    font-weight: 500;
+}
+
+.card-info-panel p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* 控制按鈕 */

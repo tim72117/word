@@ -1,0 +1,19 @@
+{
+    "園": {
+        "components": [
+            "囗",
+            "袁"
+        ],
+        "structure": "encircled",
+        "description": "「園」由外圍的「囗」（圍牆）與內部的「袁」（聲符）組成，象徵被圍牆圈起來的種植之地。",
+        "is_composite": true
+    },
+    "袁": {
+        "components": [
+            "衣"
+        ],
+        "structure": "top-bottom",
+        "description": "「袁」的原意與長衣有關，作為聲符時帶有寬大、包容的意象。",
+        "is_composite": true
+    }
+}

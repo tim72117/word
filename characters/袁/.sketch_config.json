@@ -1,0 +1,14 @@
+{
+  "charName": "袁",
+  "bgFilename": "yuan_final_render_v3.png",
+  "elements": [
+    {
+      "text": "袁",
+      "fontFamily": "\"Ma Shan Zheng\", cursive",
+      "color": "rgb(255, 255, 255)",
+      "fontSize": "282.6px",
+      "left": "4.7px",
+      "top": "121.2px"
+    }
+  ]
+}

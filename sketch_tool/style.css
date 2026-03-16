@@ -1,3 +1,33 @@
+@font-face {
+    font-family: 'MasaFont';
+    src: url('fonts/MasaFont-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: 'MasaFont';
+    src: url('fonts/MasaFont-Light.ttf') format('truetype');
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: 'MasaFont';
+    src: url('fonts/MasaFont-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'MasaFont';
+    src: url('fonts/MasaFont-Medium.ttf') format('truetype');
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'MasaFont';
+    src: url('fonts/MasaFont-Bold.ttf') format('truetype');
+    font-weight: 700;
+}
+
 * {
     box-sizing: border-box;
     /* 統一使用 border-box 簡化計算 */
@@ -77,7 +107,7 @@ h1 {
     height: 65vh;
     /* 讓整個工具能稍微塞進一個畫面 */
     max-height: 1286px;
-    aspect-ratio: 726 / 1286;
+    aspect-ratio: 774 / 1350;
     /* 含邊框的比例 */
     max-width: 95vw;
     box-sizing: border-box;
@@ -96,20 +126,23 @@ canvas {
     height: 100%;
 }
 
+#bgCanvas {
+    z-index: 1;
+    background: transparent;
+}
+
 #sketchCanvas {
-    z-index: 3;
-    /* 繪圖層在上面 */
+    z-index: 2;
+    /* 繪圖層在中間 */
     background: transparent;
 }
 
 #calligraphyCanvas {
-    z-index: 2;
-    /* 書法層在下面 */
+    z-index: 3;
+    /* 書法層在最上層 */
     background: transparent;
-    opacity: 0.5;
-    /* 稍微增加透明度，因為反相後會變亮 */
-    filter: invert(1);
-    /* 將黑色書法反相為白色，以便在深色背景顯示 */
+    opacity: 0.95;
+    /* 移除 invert 反相效果，統一使用 WYSIWYG 所見即所得顏色 */
     pointer-events: none;
     /* 預設不接收事件 */
 }
@@ -183,6 +216,23 @@ select {
 select:focus,
 input[type="text"]:focus {
     border-color: var(--accent-color);
+}
+
+.rotate-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.rotate-controls .control-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.rotate-controls input[type="range"] {
+    width: 60px;
 }
 
 input[type="range"] {
@@ -302,4 +352,215 @@ button.primary:hover {
     font-size: 0.6rem;
     padding: 2px;
     text-align: center;
+}
+
+/* 互動文字層樣式 */
+#textOverlayContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+    perspective: 1500px;
+    transform-style: preserve-3d;
+    /* 核心修正：允許子元素在 3D 空間呈現 */
+    /* 增加透視深度 */
+}
+
+.text-element {
+    position: absolute;
+    pointer-events: auto;
+    cursor: move;
+    transform-origin: center center;
+    border: 2px dashed transparent;
+    transition: transform 0.1s ease-out;
+    transform-style: preserve-3d;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.text-element:hover,
+.text-element.active {
+    border: 2px dashed rgba(99, 102, 241, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 控制元件樣式 */
+.resize-handle {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-color);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: nwse-resize;
+    display: none;
+    z-index: 20;
+}
+
+.delete-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 24px;
+    height: 24px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 20;
+}
+
+.text-element.active .resize-handle,
+.text-element:hover .resize-handle,
+.text-element.active .delete-btn,
+.text-element:hover .delete-btn {
+    display: flex;
+}
+
+/* Toast 通知系統 */
+#toastContainer {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(30, 32, 38, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-color);
+    color: var(--text-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    font-size: 0.9rem;
+    min-width: 200px;
+    max-width: 350px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    pointer-events: auto;
+}
+
+.toast.error {
+    border-left-color: #ef4444;
+}
+
+.toast.success {
+    border-left-color: #10b981;
+}
+
+.toast.fade-out {
+    animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastIn {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* Modal 視窗系統 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 11000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    width: 400px;
+    max-width: 90%;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.modal-content h2 {
+    margin: 0 0 16px 0;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+}
+
+.workspace-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding-right: 5px;
+}
+
+.workspace-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.workspace-item:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
 }

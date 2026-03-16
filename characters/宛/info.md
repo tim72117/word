@@ -31,9 +31,9 @@
 為了確保構圖精準且完全消除草圖痕跡，本資產採用兩階段生成：
 
 ### 第一階段：黑白結構素描 (wan_character_card_v1_structural.png)
-- **參考影像**：`sketch_1772758194651.png` (彩色佈局圖)
-- **中文提示詞**：一張高品質的 2D 中國風遊戲資產**黑白結構素描**。請精確遵循佈局圖的區域：1. 頂部白色 -> 線條洗練的傳統建築屋頂。2. 左側灰色 -> 極簡新月。3. 右側紅色 -> 姿態優雅的蜷臥睡覺人物。風格為純粹的黑白線條手繪素描，強調結構與比例，不帶任何色彩。
-- **English Prompt**: A high-quality 2D Chinese game asset **structural B&W sketch**. Follow the layout exactly: 1. White -> Clean-lined traditional Chinese roof. 2. Grey -> Minimalist crescent moon. 3. Red -> Elegantly posed sleeping person. Style: Pure B&W line art sketch, focusing on structure, proportions, and zero color.
+- **參考影像**：`sketch_1772758194651.png` (彩色佈局圖，以下簡稱 **參考圖**)
+- **中文提示詞**：一張高品質的 2D 中國風遊戲資產**黑白結構素描**。請精確遵循 **參考圖** (Reference Image) 的區域：1. 頂部白色 -> 線條洗練的傳統建築屋頂。2. 左側灰色 -> 極簡新月。3. 右側紅色 -> 姿態優雅的蜷臥睡覺人物。風格為純粹的黑白線條手繪素描，強調結構與比例，不帶任何色彩。
+- **English Prompt**: A high-quality 2D Chinese game asset **structural B&W sketch**. Follow the layout of the **Reference Image** (參考圖) exactly: 1. White -> Clean-lined traditional Chinese roof. 2. Grey -> Minimalist crescent moon. 3. Red -> Elegantly posed sleeping person. Style: Pure B&W line art sketch, focusing on structure, proportions, and zero color.
 
 ### 第二階段：最終水墨風格圖 (wan_character_card_v1_final.png)
 - **參考影像**：`wan_character_card_v1_structural.png` (第一階段生成的黑像素描)

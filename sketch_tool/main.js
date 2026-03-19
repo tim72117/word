@@ -141,7 +141,7 @@ function switchLayer(layer) {
         layerCalligraphyBtn.classList.add('active');
         document.body.classList.add('calligraphy-mode');
         if (calliTextGroup) calliTextGroup.style.display = 'flex';
-        if (rotateControls) rotateControls.style.display = 'flex';
+        // 不在這裡直接顯示 rotateControls，由 setupTextElement 處理
 
         const activeColor = document.querySelector('.color-option.active')?.dataset.color || '#ffffff';
         iCtx.strokeStyle = activeColor;
@@ -174,10 +174,16 @@ function setupTextElement(textEl) {
         textStartLeft = parseFloat(textEl.style.left) || 0;
         textStartTop = parseFloat(textEl.style.top) || 0;
 
-        // 同步旋轉滑桿
+        // 同步旋轉與屬性
         rotateXInput.value = textEl.dataset.rotateX || 0;
         rotateYInput.value = textEl.dataset.rotateY || 0;
         rotateZInput.value = textEl.dataset.rotateZ || 0;
+        document.getElementById('valX').textContent = rotateXInput.value;
+        document.getElementById('valY').textContent = rotateYInput.value;
+        document.getElementById('valZ').textContent = rotateZInput.value;
+        document.getElementById('isPhonetic').checked = textEl.dataset.isPhonetic === 'true';
+
+        if (rotateControls) rotateControls.style.display = 'flex';
 
         e.preventDefault();
         e.stopPropagation();
@@ -190,6 +196,7 @@ function setupTextElement(textEl) {
         textEl.classList.add('active');
         textDragStartX = e.clientX;
         textStartSize = parseFloat(textEl.style.fontSize) || 100;
+
         e.preventDefault();
         e.stopPropagation();
     });
@@ -203,15 +210,24 @@ function updateTextTransform(el) {
     el.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
 }
 
-// 綁定旋轉滑桿事件
+// 綁定旋轉滑桿與聲符勾選事件
 [rotateXInput, rotateYInput, rotateZInput].forEach(input => {
     input.addEventListener('input', () => {
         if (activeTextObj) {
             const axis = input.id.replace('rotate', '').toUpperCase(); // X, Y, or Z
             activeTextObj.dataset[`rotate${axis}`] = input.value;
+            // 更新數值顯示
+            const valDisplay = document.getElementById(`val${axis}`);
+            if (valDisplay) valDisplay.textContent = input.value;
             updateTextTransform(activeTextObj);
         }
     });
+});
+
+document.getElementById('isPhonetic').addEventListener('change', (e) => {
+    if (activeTextObj) {
+        activeTextObj.dataset.isPhonetic = e.target.checked;
+    }
 });
 
 addTextBtn.addEventListener('click', async () => {
@@ -238,10 +254,11 @@ addTextBtn.addEventListener('click', async () => {
     textEl.style.color = activeColor;
     textEl.style.fontFamily = fontValue;
 
-    // 初始化 3D 旋轉數據
+    // 初始化 3D 旋轉與聲符數據
     textEl.dataset.rotateX = 0;
     textEl.dataset.rotateY = 0;
     textEl.dataset.rotateZ = 0;
+    textEl.dataset.isPhonetic = document.getElementById('isPhonetic').checked;
 
     const initialDomSize = container.clientWidth * 0.9;
     textEl.style.fontSize = `${initialDomSize}px`;
@@ -268,10 +285,17 @@ addTextBtn.addEventListener('click', async () => {
     textEl.classList.add('active');
     activeTextObj = textEl;
 
-    // 重置滑桿
+    // 重置滑桿與數值顯示
     rotateXInput.value = 0;
     rotateYInput.value = 0;
     rotateZInput.value = 0;
+    document.getElementById('valX').textContent = 0;
+    document.getElementById('valY').textContent = 0;
+    document.getElementById('valZ').textContent = 0;
+    document.getElementById('isPhonetic').checked = false;
+
+    // 顯示控制項
+    if (rotateControls) rotateControls.style.display = 'flex';
 });
 
 // 工作區設定收集功能
@@ -288,13 +312,19 @@ function getWorkspaceConfig() {
             top: el.style.top,
             rotateX: el.dataset.rotateX || 0,
             rotateY: el.dataset.rotateY || 0,
-            rotateZ: el.dataset.rotateZ || 0
+            rotateZ: el.dataset.rotateZ || 0,
+            isPhonetic: el.dataset.isPhonetic === 'true'
         });
     });
+
+    // 計算聲符範圍
+    const phonoInfo = renderInkOnlyWithBounds(true);
+
     return {
         charName,
         bgFilename: currentBgFilename,
-        elements
+        elements,
+        phonoRange: phonoInfo.bounds
     };
 }
 
@@ -321,6 +351,8 @@ window.addEventListener('mouseup', () => {
 document.querySelector('.canvas-wrapper').addEventListener('mousedown', (e) => {
     if (!e.target.closest('.text-element')) {
         document.querySelectorAll('.text-element').forEach(el => el.classList.remove('active'));
+        activeTextObj = null;
+        if (rotateControls) rotateControls.style.display = 'none';
     }
 });
 
@@ -382,9 +414,14 @@ async function saveToPNG(autoClear = false) {
     tCtx.drawImage(inkCanvas, 0, 0);
 
     const inkDataURL = renderInkOnlyToDataURL();
+    const phonoInfo = renderInkOnlyWithBounds(true);
+    const inkPhonoDataURL = phonoInfo.dataURL;
+
     // 獲取目前繪圖層的數據
     const brushDataURL = inkCanvas.toDataURL('image/png');
     const config = getWorkspaceConfig();
+    // 確保 config 中的 phonoRange 是最新的
+    config.phonoRange = phonoInfo.bounds;
 
     // 繪製 DOM 互動文字層至合併畫布
     const container = document.getElementById('textOverlayContainer');
@@ -392,27 +429,14 @@ async function saveToPNG(autoClear = false) {
     const ratioY = 1344 / container.clientHeight;
 
     document.querySelectorAll('.text-element').forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        // 取得 DOM 元件相對於容器的精確中心座標
-        const domCenterX = (rect.left - containerRect.left) + rect.width / 2;
-        const domCenterY = (rect.top - containerRect.top) + rect.height / 2;
-        const fontSize = parseFloat(el.style.fontSize) || 100;
-        const textStr = el.querySelector('span').textContent;
-
-        tCtx.fillStyle = el.style.color;
-        tCtx.textAlign = 'center';
-        tCtx.textBaseline = 'middle';
-        tCtx.font = `${fontSize * ratioX}px ${el.style.fontFamily}`;
-        // 將中心座標依照比例投射回 768x1344 畫布上
-        tCtx.fillText(textStr, domCenterX * ratioX, domCenterY * ratioY);
+        drawRotatedText(tCtx, el, ratioX, ratioY);
     });
 
     const finalDataURL = tempCanvas.toDataURL('image/png');
 
     // Auto detection for "Save to Folder" if charName is present
     if (charName !== "sketch") {
-        await saveToServer(finalDataURL, filename, charName, config, inkDataURL, brushDataURL);
+        await saveToServer(finalDataURL, filename, charName, config, inkDataURL, brushDataURL, inkPhonoDataURL);
     } else {
         const link = document.createElement('a');
         link.download = filename;
@@ -431,32 +455,110 @@ async function saveToPNG(autoClear = false) {
     }
 }
 
-function renderInkOnlyToDataURL() {
+function renderInkOnlyToDataURL(phonoOnly = false) {
+    return renderInkOnlyWithBounds(phonoOnly).dataURL;
+}
+
+/**
+ * 渲染書法層並計算邊界
+ */
+function renderInkOnlyWithBounds(phonoOnly = false) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 768;
     tempCanvas.height = 1344;
     const tCtx = tempCanvas.getContext('2d');
     const container = document.getElementById('textOverlayContainer');
-    const ratioX = 768 / container.clientWidth;
-    const ratioY = 1344 / container.clientHeight;
+    const ratioX = 768 / (container.clientWidth || 768);
+    const ratioY = 1344 / (container.clientHeight || 1344);
 
+    let hasContent = false;
     document.querySelectorAll('.text-element').forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        const domCenterX = (rect.left - containerRect.left) + rect.width / 2;
-        const domCenterY = (rect.top - containerRect.top) + rect.height / 2;
-        const fontSize = parseFloat(el.style.fontSize) || 100;
-        const textStr = el.querySelector('span').textContent;
-        tCtx.fillStyle = el.style.color;
-        tCtx.textAlign = 'center';
-        tCtx.textBaseline = 'middle';
-        tCtx.font = `${fontSize * ratioX}px ${el.style.fontFamily}`;
-        tCtx.fillText(textStr, domCenterX * ratioX, domCenterY * ratioY);
+        if (phonoOnly && el.dataset.isPhonetic !== 'true') return;
+        drawRotatedText(tCtx, el, ratioX, ratioY);
+        hasContent = true;
     });
-    return tempCanvas.toDataURL('image/png');
+
+    const dataURL = tempCanvas.toDataURL('image/png');
+    let bounds = null;
+
+    if (hasContent) {
+        const imageData = tCtx.getImageData(0, 0, 768, 1344);
+        bounds = getImageBoundingBox(imageData);
+    }
+
+    return { dataURL, bounds };
 }
 
-async function saveToServer(dataURL, filename, folder, config = null, inkImage = null, brushImage = null) {
+/**
+ * 掃描 ImageData 獲取最小外接矩形 (Alpha Channel 偵測)
+ */
+function getImageBoundingBox(imageData) {
+    const { width, height, data } = imageData;
+    let minX = width, minY = height, maxX = 0, maxY = 0;
+    let found = false;
+
+    // 每 4 個像素跳過 3 個來加速掃描 (RGBA)
+    for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+            const alpha = data[(y * width + x) * 4 + 3];
+            if (alpha > 10) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+                found = true;
+            }
+        }
+    }
+
+    if (!found) return null;
+
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+    };
+}
+
+/**
+ * 核心繪圖函數：處理 3D 旋轉模擬並繪戴至 Canvas
+ */
+function drawRotatedText(ctx, el, ratioX, ratioY) {
+    const container = document.getElementById('textOverlayContainer');
+    const rect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    // 取得 DOM 元件中心
+    const domCenterX = (rect.left - containerRect.left) + rect.width / 2;
+    const domCenterY = (rect.top - containerRect.top) + rect.height / 2;
+    const fontSize = parseFloat(el.style.fontSize) || 100;
+    const textStr = el.querySelector('span').textContent;
+
+    const rx = parseFloat(el.dataset.rotateX || 0);
+    const ry = parseFloat(el.dataset.rotateY || 0);
+    const rz = parseFloat(el.dataset.rotateZ || 0);
+
+    ctx.save();
+    // 移動到文字中心
+    ctx.translate(domCenterX * ratioX, domCenterY * ratioY);
+
+    // 近似 3D 旋轉效果
+    const scaleY = Math.cos(rx * Math.PI / 180);
+    const scaleX = Math.cos(ry * Math.PI / 180);
+
+    ctx.scale(scaleX, scaleY);
+    ctx.rotate(rz * Math.PI / 180);
+
+    ctx.fillStyle = el.style.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${fontSize * ratioX}px ${el.style.fontFamily}`;
+    ctx.fillText(textStr, 0, 0);
+    ctx.restore();
+}
+
+async function saveToServer(dataURL, filename, folder, config = null, inkImage = null, brushImage = null, inkPhonoImage = null) {
     try {
         const response = await fetch('http://localhost:8000/save', {
             method: 'POST',
@@ -467,7 +569,8 @@ async function saveToServer(dataURL, filename, folder, config = null, inkImage =
                 folder: folder,
                 config: config,
                 inkImage: inkImage,
-                brushImage: brushImage
+                brushImage: brushImage,
+                inkPhonoImage: inkPhonoImage
             })
         });
         const result = await response.json();
@@ -615,10 +718,11 @@ function createFloatingText(data) {
     textEl.style.left = data.left;
     textEl.style.top = data.top;
 
-    // 套用 3D 旋轉參數
+    // 套用 3D 旋轉與聲符參數
     textEl.dataset.rotateX = data.rotateX || 0;
     textEl.dataset.rotateY = data.rotateY || 0;
     textEl.dataset.rotateZ = data.rotateZ || 0;
+    textEl.dataset.isPhonetic = data.isPhonetic ? 'true' : 'false';
     updateTextTransform(textEl);
 
     const span = document.createElement('span');
@@ -728,7 +832,12 @@ async function saveWorkspace() {
 
     const config = getWorkspaceConfig();
     const inkDataURL = renderInkOnlyToDataURL();
+    const phonoInfo = renderInkOnlyWithBounds(true);
+    const inkPhonoDataURL = phonoInfo.dataURL;
     const brushDataURL = inkCanvas.toDataURL('image/png');
+
+    // 確保 config 中的 phonoRange 是最新的
+    config.phonoRange = phonoInfo.bounds;
 
     // 儲存工作區時，我們不產生新的編號圖檔，而是更新該目錄的基礎資產
     // 我們傳送一個空檔名告訴伺服器：僅更新 config/ink/brush
@@ -743,6 +852,7 @@ async function saveWorkspace() {
                 config: config,
                 inkImage: inkDataURL,
                 brushImage: brushDataURL,
+                inkPhonoImage: inkPhonoDataURL,
                 isWorkspaceSync: true // 標記為同步工作區
             })
         });

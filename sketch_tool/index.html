@@ -65,17 +65,22 @@
                 <button id="addTextBtn" class="primary">置入畫布</button>
             </div>
             <div class="tool-group rotate-controls" style="display: none;">
-                <label>3D 旋轉</label>
+                <label>3D 旋轉與屬性</label>
+                <div
+                    style="display: flex; align-items: center; gap: 5px; color: white; font-size: 0.8rem; margin-bottom: 10px; width: 100%;">
+                    <input type="checkbox" id="isPhonetic" style="width: 15px; height: 15px;">
+                    <label for="isPhonetic">作為聲符 (Phonetic)</label>
+                </div>
                 <div class="control-item">
-                    <span>X</span>
+                    <span>X: <span id="valX">0</span>°</span>
                     <input type="range" id="rotateX" min="-180" max="180" value="0">
                 </div>
                 <div class="control-item">
-                    <span>Y</span>
+                    <span>Y: <span id="valY">0</span>°</span>
                     <input type="range" id="rotateY" min="-180" max="180" value="0">
                 </div>
                 <div class="control-item">
-                    <span>Z</span>
+                    <span>Z: <span id="valZ">0</span>°</span>
                     <input type="range" id="rotateZ" min="-180" max="180" value="0">
                 </div>
             </div>

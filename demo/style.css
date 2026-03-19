@@ -8,6 +8,13 @@
     --perspective: 1200px;
 }
 
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -220,6 +227,8 @@ body {
     border: 2px solid var(--accent-gold);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    perspective: 1500px;
+    transform-style: preserve-3d;
 }
 
 .face-front img {
@@ -239,9 +248,151 @@ body {
     z-index: 1;
 }
 
-.ink-layer {
-    z-index: 2;
+.ink-layer,
+.brush-layer,
+.text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
     pointer-events: none;
+    image-rendering: -webkit-optimize-contrast;
+    transform-origin: center center;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+}
+
+.text-layer {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    z-index: 12;
+}
+
+.char-element {
+    position: absolute;
+    transform-style: preserve-3d;
+    white-space: nowrap;
+    display: inline-block;
+    color: black;
+    /* 預設顏色 */
+    pointer-events: none;
+}
+
+.ink-layer {
+    z-index: 10;
+}
+
+.phono-ink {
+    z-index: 11;
+}
+
+.brush-layer {
+    z-index: 20;
+}
+
+.phono-action-btn {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.15);
+    /* 微弱底色增加辨識度 */
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+    z-index: 100;
+    /* 提高層級 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    opacity: 0.9;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+    backdrop-filter: blur(2px);
+    /* 玻璃質感 */
+}
+
+.phono-action-btn:hover {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+/* 聲符提示發光 */
+.phono-glow {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    /* 在墨跡層之下 */
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+    filter: blur(8px);
+    animation: phonoPulse 1.2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes phonoPulse {
+
+    0%,
+    100% {
+        opacity: 0.1;
+        transform: scale(0.95);
+        filter: blur(8px);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+        filter: blur(4px);
+    }
+}
+
+/* 角色字源資訊面板 */
+.char-info-panel {
+    position: absolute;
+    bottom: 40px;
+    left: 30px;
+    right: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+    color: #eee;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.drawn-card.show-info .char-info-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.info-title {
+    color: var(--accent-gold);
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-title::before {
+    content: '📜';
+    font-size: 1.2rem;
 }
 
 .face-back {

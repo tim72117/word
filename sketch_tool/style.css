@@ -378,6 +378,7 @@ button.primary:hover {
     border: 2px dashed transparent;
     transition: transform 0.1s ease-out;
     transform-style: preserve-3d;
+    will-change: transform;
     line-height: 1;
     display: inline-flex;
     align-items: center;

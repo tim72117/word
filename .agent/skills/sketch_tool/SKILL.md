@@ -27,5 +27,11 @@ description: 關於 Sketch Tool 的開發維護、佈局修正與繪圖邏輯故
 - **原因**：腳本中呼叫了已被移除或未定義的 `resizeCanvas` 函式，導致 JS 執行中斷，未完成 `addEventListener`。
 - **解決方案**：移除所有對 `resizeCanvas` 的無效引用。
 
+### 4. 後端 (server.py) 更改未生效
+- **現象**：修改了 Python 的儲存邏輯或路徑，但執行結果仍與舊版相同。
+- **原因**：`http.server` 與 `socketserver` 不具備自動重新載入（Hot-Reload）功能，已啟動的處理程序會保留舊的程式碼。
+- **解決方案**：必須手動手動中斷（Ctrl+C）並重新啟動 `python3 server.py`。
+
 ## 工作流程 (Workflow)
-- **更新程式碼後強制重整**：若 CSS/JS 更改未生效，請在 `index.html` 的引用路徑後加上版本號（如 `?v=4`）以擊碎瀏覽器快取。
+- **更新後端後手動重啟**：每次修改 `server.py` 後，必須重啟伺服器程式。
+- **更新前端後強制重整**：若 CSS/JS 更改未生效，請在 `index.html` 的引用路徑後加上版本號（如 `?v=4`）以擊碎瀏覽器快取。

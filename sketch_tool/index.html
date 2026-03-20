@@ -5,11 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sketch Tool - Outline Master</title>
-    <link rel="stylesheet" href="style.css?v=6">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@700&family=Zhi+Mang+Xing&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=11">
+    <style>
+        @font-face {
+            font-family: 'MasaFont';
+            font-weight: 200;
+            src: url('fonts/MasaFont-ExtraLight.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'MasaFont';
+            font-weight: 300;
+            src: url('fonts/MasaFont-Light.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'MasaFont';
+            font-weight: 400;
+            src: url('fonts/MasaFont-Regular.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'MasaFont';
+            font-weight: 500;
+            src: url('fonts/MasaFont-Medium.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'MasaFont';
+            font-weight: 700;
+            src: url('fonts/MasaFont-Bold.ttf') format('truetype');
+        }
+    </style>
 </head>
+
 
 <body>
     <div class="studio-container">
@@ -22,6 +47,7 @@
                 <button id="saveBackBtn" class="primary" style="display: none;">直接存回</button>
                 <button id="clearBtn">清除</button>
                 <button id="undoBtn">復原</button>
+                <button id="toggleRegionsBtn">顯示結構範圍</button>
                 <input type="text" id="charNameInput" placeholder="字名 (如: 宛)" style="display: none;">
                 <button id="saveInkBtn">儲存透明書法</button>
                 <button id="saveWorkspaceBtn" class="primary">儲存工作區</button>
@@ -36,6 +62,7 @@
             <canvas id="bgCanvas"></canvas>
             <canvas id="sketchCanvas"></canvas>
             <canvas id="calligraphyCanvas"></canvas>
+            <canvas id="regionCanvas"></canvas>
             <div id="textOverlayContainer"></div>
         </div>
 
@@ -49,12 +76,9 @@
                 <label>書法字輸入</label>
                 <input type="text" id="calligraphyInput" placeholder="輸入字">
                 <select id="fontSelect" style="width: 120px;">
-                    <option value="'MasaFont', cursive">正風毛筆 (Masa)</option>
-                    <option value="'Ma Shan Zheng', cursive">毛筆草書 (Brush)</option>
-                    <option value="'Zhi Mang Xing', cursive">流暢行書 (Script)</option>
-                    <option value="'Noto Serif TC', serif">標準宋體 (Serif)</option>
-                    <option value="'STKaiti', '標楷體', apple-system">系統楷體 (Kaiti)</option>
+                    <option value="'MasaFont', cursive" selected>正風毛筆 (Masa)</option>
                 </select>
+
                 <select id="fontWeightSelect" style="width: 80px;">
                     <option value="200">極細 200</option>
                     <option value="300">細體 300</option>
@@ -117,7 +141,7 @@
         </div>
     </div>
 
-    <script src="main.js?v=6"></script>
+    <script src="main.js?v=11"></script>
 </body>
 
 </html>

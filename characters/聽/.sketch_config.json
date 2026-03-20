@@ -1,0 +1,58 @@
+{
+  "charName": "聽",
+  "bgFilename": "ting_structural_sketch_v5_flat.png",
+  "elements": [
+    {
+      "text": "目",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "400px",
+      "left": "184px",
+      "top": "150px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "上方核心觀察部件"
+    },
+    {
+      "text": "十",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ff4444",
+      "fontSize": "250px",
+      "left": "259px",
+      "top": "120px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "疊加於目上的專注準星"
+    },
+    {
+      "text": "一",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "600px",
+      "left": "84px",
+      "top": "550px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "中央連貫部件"
+    },
+    {
+      "text": "心",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "350px",
+      "left": "209px",
+      "top": "850px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "底部核心意念部件"
+    }
+  ]
+}

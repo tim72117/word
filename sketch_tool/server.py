@@ -12,6 +12,15 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def translate_path(self, path):
+        # Handle requests for character assets located outside the sketch_tool directory
+        if path.startswith('/characters/'):
+            project_root = os.path.dirname(DIRECTORY)
+            # Remove leading slash and join with project root
+            target_path = os.path.join(project_root, path.lstrip('/'))
+            return target_path
+        return super().translate_path(path)
+
     def do_POST(self):
         print(f"📥 Received POST request: {self.path}")
         if self.path == '/list':
@@ -125,7 +134,11 @@ class SketchHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
+class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    pass
+
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), SketchHandler) as httpd:
-        print(f"🚀 Sketch Tool Server running at http://localhost:{PORT}")
+    # 使用 ThreadingTCPServer 以支援多執行緒處理併發請求，解決多個視窗開啟緩慢的問題
+    with ThreadingTCPServer(("", PORT), SketchHandler) as httpd:
+        print(f"🚀 Sketch Tool Server (Multi-threaded) running at http://localhost:{PORT}")
         httpd.serve_forever()

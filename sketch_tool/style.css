@@ -42,30 +42,29 @@
     --canvas-bg: #000000;
 }
 
-body {
+html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    overflow: auto;
+    overflow: hidden;
+    /* 強制撐開背景與消除所有預設邊距 */
 }
 
 .studio-container {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 20px 0;
-    overflow-y: auto;
-    /* 允許垂直滾動整個開發工具 */
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 0; /* 移除外圍邊距，達成真正的滿版 */
+    box-sizing: border-box;
+    gap: 0;
 }
 
 header {
@@ -99,17 +98,15 @@ h1 {
         0 30px 60px rgba(0, 0, 0, 0.7);
     cursor: crosshair;
     overflow: hidden;
-    /* 我們不再需要內部滾動，讓整個頁面滾動就好 */
     line-height: 0;
     transition: border-color 0.3s ease;
-    /* 尺寸改為自適應視窗高度，維持比例 */
-    flex: 0 0 auto;
-    height: 65vh;
-    /* 讓整個工具能稍微塞進一個畫面 */
-    max-height: 1286px;
-    aspect-ratio: 774 / 1350;
-    /* 含邊框的比例 */
-    max-width: 95vw;
+    /* 尺寸優化：作為彈性元素，自動填滿剩餘空間並維持比例 */
+    flex: 1;
+    width: auto;
+    margin: 0 auto;
+    aspect-ratio: 768 / 1344;
+    max-width: 100%;
+    max-height: 100%;
     box-sizing: border-box;
 }
 
@@ -145,6 +142,13 @@ canvas {
     /* 移除 invert 反相效果，統一使用 WYSIWYG 所見即所得顏色 */
     pointer-events: none;
     /* 預設不接收事件 */
+}
+
+#regionCanvas {
+    z-index: 5;
+    /* 範圍標示層在最上層，甚至在書法層之上，但下方有 pointer-events: none */
+    background: transparent;
+    pointer-events: none;
 }
 
 /* Layer specific cursor */
@@ -359,15 +363,14 @@ button.primary:hover {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 768px;
+    height: 1344px;
+    transform-origin: top left;
     pointer-events: none;
     z-index: 10;
     overflow: hidden;
     perspective: 1500px;
     transform-style: preserve-3d;
-    /* 核心修正：允許子元素在 3D 空間呈現 */
-    /* 增加透視深度 */
 }
 
 .text-element {
@@ -393,6 +396,18 @@ button.primary:hover {
 .text-element.active {
     border: 2px dashed rgba(99, 102, 241, 0.8);
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* [NEW] 隱藏組件文字，保留全字底稿 */
+.hide-component-text .text-element:not(.full-char) span {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.text-element.full-char {
+    border: none;
+    background: none;
+    pointer-events: none; /* 全字底稿不接收事件 */
 }
 
 /* 控制元件樣式 */

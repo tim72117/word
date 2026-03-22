@@ -32,6 +32,27 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
   - **第二階段：最終藝術渲染 (Final Render)**：以上一步生成的黑像素描圖作為參考影像，進行完整的水墨或重彩渲染。
    - **外框應用**：將最終生成的圖像套用 `chinese_card_frame` 外框。
 
+## 局部組件草圖生成與解析規範 (Component Parsing & Sketch Generation)
+為了讓零散的中文字部件能以高解析度獨立展示，專案在 `sketch_tool/component_generation/` 資料夾下準備了四支標準自動化腳本。請嚴格遵守以下流程調用：
+
+### A. 初期圖像解析與自動化測量
+當需要在一開始破解含多個部件的字源考古圖，並建立 HTML/Canvas DOM 結構時：
+1. **原始圖像自動裁切 (`analyze_structure.py`)**：啟動後端 OpenCV 切片分析，尋找網格與部件輪廓並自動分割為獨立小圖檔。
+2. **DOM 對位預覽與爬蟲截圖 (`sketch_cli.py`)**：自動啟動隱藏瀏覽器載入 Sketch Tool 網頁，讀取渲染的 DOM 結構位置後針對各部件執行自動框選截圖，作為排版正確性的「有底圖比對基礎」。
+
+### B. 高精度透明草圖生成 (AI 渲染)
+當要讓單一部件產生乾淨的去背水墨草圖時，嚴禁前端截圖，請執行以下標準流程：
+1. **後端基準尺寸圖提取 (`generate_reference_box.py`)**：
+   - 執行腳本讀取 `.sketch_config.json` 中目標部件的絕對座標。產生一張完全相同長寬比例的「純白」參考圖（無紅框）。
+2. **第一階段：極簡幾何線稿 (Minimalist Structural Sketch)**：
+   - 投入純白參考圖。要求「極簡工程線稿」、「純白背景」、「極細黑線」，**「絕對禁止出現任何現代文字、漢字或標籤」**。
+3. **第二階段：現代中式水墨渲染 (Modern Ink Wash Render)**：
+   - 投入第一步生成的幾何線稿。轉化為「現代中式水墨畫 (Modern Chinese ink wash)」風格，具備「靈動筆觸與墨跡暈染 (subtle ink bleeding)」，同樣嚴禁字跡。
+4. **亮度去背轉換 (`remove_background.py`)**：
+   - 使用亮度去背腳本處理 AI 生成的黑白草圖，將白底轉為全透明，墨跡呈現真實黑灰半透明層次。並覆寫回原部件檔名（如 `etymology_耳.png`）。
+5. ** JSON 對位與提示詞歸檔**：
+   - 將兩階段生成的**中/英文提示詞**完整建檔於該目錄的 `info.md` 中。
+
 ## 5. 常見錯誤與預防 (Common Pitfalls & Prevention)
 - **忽視目標字優先資訊 (Neglecting Target Info First)**：
   - **現象**：直接跳過目標合體字（如「聞」）的資訊生成，直接開始製作部件（如「耳」）。

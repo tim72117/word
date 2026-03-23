@@ -5,25 +5,129 @@ import os
 import base64
 from urllib.parse import urlparse
 
-PORT = 8000
+PORT = 8001
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+
+COMMAND_QUEUE = []
 
 class SketchHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
-    def translate_path(self, path):
-        # Handle requests for character assets located outside the sketch_tool directory
-        if path.startswith('/characters/'):
+    def do_GET(self):
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+        
+        # 處理 AI 指令輪詢
+        if path == '/poll':
+            global COMMAND_QUEUE
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # 傳回指令並清空隊列
+            response = {"status": "success", "commands": COMMAND_QUEUE}
+            COMMAND_QUEUE = []
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            return
+
+        # 支援從 GET 載入配置 (讓瀏覽器直接輸入 URL 或簡化調用也可運作)
+        if path == '/load':
+            from urllib.parse import parse_qs, unquote
+            query = parse_qs(parsed_path.query)
+            folder = query.get('folder', [None])[0]
+            if not folder:
+                self.send_error(400, "Missing folder parameter")
+                return
+
+            folder = unquote(folder)
             project_root = os.path.dirname(DIRECTORY)
-            # Remove leading slash and join with project root
-            target_path = os.path.join(project_root, path.lstrip('/'))
+            target_dir = os.path.join(project_root, "characters", folder)
+            config_path = os.path.join(target_dir, ".sketch_config.json")
+            
+            response_data = {"status": "success", "config": None}
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
+                    response_data["config"] = json.load(f)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            return
+
+        # 讓 CLI 獲取最新的截圖
+        if path == '/get_screenshot':
+            global LATEST_SCREENSHOT
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            response = {"status": "success", "image": LATEST_SCREENSHOT}
+            # 讀取後清空，確保 CLI 拿到的是最新的
+            LATEST_SCREENSHOT = None
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            return
+            
+        return super().do_GET()
+
+    def translate_path(self, path):
+        # Decode URL-encoded paths (handles Chinese characters like '聽')
+        from urllib.parse import unquote
+        decoded_path = unquote(path)
+        
+        # Handle requests for character assets located outside the sketch_tool directory
+        if decoded_path.startswith('/characters/'):
+            project_root = os.path.dirname(DIRECTORY)
+            target_path = os.path.join(project_root, decoded_path.lstrip('/'))
             return target_path
         return super().translate_path(path)
 
     def do_POST(self):
-        print(f"📥 Received POST request: {self.path}")
-        if self.path == '/list':
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+        print(f"📥 Received POST request: {path}")
+        
+        # 接收來自 CLI 的指令
+        if path == '/command':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                global COMMAND_QUEUE
+                COMMAND_QUEUE.append(data)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success"}).encode('utf-8'))
+            except Exception as e:
+                self.send_error(500, str(e))
+            return
+
+        # 接收來自瀏覽器的截圖上傳
+        if path == '/upload_screenshot':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                global LATEST_SCREENSHOT
+                LATEST_SCREENSHOT = data.get('image')
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success"}).encode('utf-8'))
+            except Exception as e:
+                self.send_error(500, str(e))
+            return
+
+        if path == '/list':
             try:
                 project_root = os.path.dirname(DIRECTORY)
                 chars_dir = os.path.join(project_root, "characters")

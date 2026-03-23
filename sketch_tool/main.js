@@ -28,14 +28,35 @@ const workspaceModal = document.getElementById('workspaceModal');
 const workspaceList = document.getElementById('workspaceList');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const toggleRegionsBtn = document.getElementById('toggleRegionsBtn');
+const toggleSketchBtn = document.getElementById('toggleSketchBtn');
+const toggleCalligraphyBtn = document.getElementById('toggleCalligraphyBtn');
+const toggleBgBtn = document.getElementById('toggleBgBtn');
 
-let showRegions = false;
+// [FIXED] 最終預設：顯示底圖 (bgCanvas) 並淡化，隱藏書法層 (inkCanvas)
+layoutCanvas.style.display = 'none';
+inkCanvas.style.display = 'none';
+bgCanvas.style.display = 'block';
+bgCanvas.style.opacity = '0.15';
 
-// 3D 旋轉控制項
+const container = document.getElementById('textOverlayContainer');
+if (container) {
+    container.classList.add('hide-all-calligraphy');
+    container.classList.add('show-regions');
+    container.classList.add('hide-component-text');
+}
+
+let showRegions = true; 
+if (toggleSketchBtn) toggleSketchBtn.classList.remove('active');
+if (toggleCalligraphyBtn) toggleCalligraphyBtn.classList.remove('active'); 
+if (toggleBgBtn) toggleBgBtn.classList.add('active'); 
+if (toggleRegionsBtn) toggleRegionsBtn.classList.add('active');
+
 const rotateXInput = document.getElementById('rotateX');
 const rotateYInput = document.getElementById('rotateY');
 const rotateZInput = document.getElementById('rotateZ');
 const rotateControls = document.querySelector('.rotate-controls');
+
+if (rotateControls) rotateControls.style.display = 'none';
 
 const fontWeightSelect = document.getElementById('fontWeightSelect');
 
@@ -192,7 +213,10 @@ function setupTextElement(textEl) {
         document.getElementById('valZ').textContent = rotateZInput.value;
         document.getElementById('isPhonetic').checked = textEl.dataset.isPhonetic === 'true';
 
+        // 強制彈出旋轉與細部控制項
         if (rotateControls) rotateControls.style.display = 'flex';
+        const calliTextGroup = document.querySelector('.calli-text-group');
+        if (calliTextGroup) calliTextGroup.style.display = 'flex';
 
         // 同步字重
         if (fontWeightSelect) {
@@ -222,6 +246,11 @@ function updateTextTransform(el) {
     const ry = el.dataset.rotateY || 0;
     const rz = el.dataset.rotateZ || 0;
     el.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+
+    // [NEW] 畫布模式下，若正在顯示結構，則同步重繪
+    if (typeof showRegions !== 'undefined' && showRegions) {
+        renderRegions();
+    }
 }
 
 // 綁定旋轉滑桿與聲符勾選事件
@@ -236,6 +265,25 @@ function updateTextTransform(el) {
             updateTextTransform(activeTextObj);
         }
     });
+});
+
+document.getElementById('resetRotationsBtn').addEventListener('click', () => {
+    document.querySelectorAll('.text-element').forEach(el => {
+        el.dataset.rotateX = 0;
+        el.dataset.rotateY = 0;
+        el.dataset.rotateZ = 0;
+        updateTextTransform(el);
+    });
+    // 同步 UI 狀態
+    if (activeTextObj) {
+        rotateXInput.value = 0;
+        rotateYInput.value = 0;
+        rotateZInput.value = 0;
+        document.getElementById('valX').textContent = '0';
+        document.getElementById('valY').textContent = '0';
+        document.getElementById('valZ').textContent = '0';
+    }
+    showToast('🤖 已將所有部件重設為平面視角 (1:1)', 'success');
 });
 
 document.getElementById('isPhonetic').addEventListener('change', (e) => {
@@ -348,10 +396,13 @@ function getWorkspaceConfig() {
             fontWeight: el.dataset.fontWeight || "400",
             left: el.style.left,
             top: el.style.top,
+            width: el.style.width,
+            height: el.style.height,
             rotateX: el.dataset.rotateX || 0,
             rotateY: el.dataset.rotateY || 0,
             rotateZ: el.dataset.rotateZ || 0,
-            isPhonetic: el.dataset.isPhonetic === 'true'
+            isPhonetic: el.dataset.isPhonetic === 'true',
+            image: el.dataset.image || null
         });
     });
 
@@ -394,37 +445,40 @@ document.querySelector('.canvas-wrapper').addEventListener('mousedown', (e) => {
     }
 });
 
-layerLayoutBtn.addEventListener('click', () => switchLayer('layout'));
-layerCalligraphyBtn.addEventListener('click', () => switchLayer('calligraphy'));
+if (layerLayoutBtn) layerLayoutBtn.addEventListener('click', () => switchLayer('layout'));
+if (layerCalligraphyBtn) layerCalligraphyBtn.addEventListener('click', () => switchLayer('calligraphy'));
 
-clearBtn.addEventListener('click', () => {
-    saveHistory();
-    const ctx = getActiveCtx();
-    ctx.clearRect(0, 0, 768, 1344);
-    if (currentLayer === 'layout') {
-        referenceLayer.innerHTML = '';
-        bgCtx.clearRect(0, 0, 768, 1344);
-        currentBgFilename = null; // Clear background filename when clearing layout
-    }
-    // 若在書法模式清除，一併清除浮動文字
-    if (currentLayer === 'calligraphy') {
-        document.getElementById('textOverlayContainer').innerHTML = '';
-    }
-});
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        saveHistory();
+        const ctx = getActiveCtx();
+        ctx.clearRect(0, 0, 768, 1344);
+        if (currentLayer === 'layout') {
+            referenceLayer.innerHTML = '';
+            bgCtx.clearRect(0, 0, 768, 1344);
+            currentBgFilename = null; 
+        }
+        if (currentLayer === 'calligraphy') {
+            document.getElementById('textOverlayContainer').innerHTML = '';
+        }
+    });
+}
 
-undoBtn.addEventListener('click', () => {
-    const hist = history[currentLayer];
-    if (hist.length > 0) {
-        const lastState = hist.pop();
-        const img = new Image();
-        img.src = lastState;
-        img.onload = () => {
-            const ctx = getActiveCtx();
-            ctx.clearRect(0, 0, 768, 1344);
-            ctx.drawImage(img, 0, 0);
-        };
-    }
-});
+if (undoBtn) {
+    undoBtn.addEventListener('click', () => {
+        const hist = history[currentLayer];
+        if (hist.length > 0) {
+            const lastState = hist.pop();
+            const img = new Image();
+            img.src = lastState;
+            img.onload = () => {
+                const ctx = getActiveCtx();
+                ctx.clearRect(0, 0, 768, 1344);
+                ctx.drawImage(img, 0, 0);
+            };
+        }
+    });
+}
 
 colorOptions.forEach(opt => {
     opt.addEventListener('click', () => {
@@ -521,11 +575,11 @@ function renderInkOnlyWithBounds(phonoOnly = false) {
 /**
  * 核心繪圖函數：處理 3D 旋轉模擬並繪製至 Canvas
  */
-function drawSingleTextToCtx(ctx, el) {
+function drawSingleTextToCtx(ctx, el, forcedW = null, forcedH = null) {
     const left = parseFloat(el.style.left) || 0;
     const top = parseFloat(el.style.top) || 0;
-    const width = el.offsetWidth || 0;
-    const height = el.offsetHeight || 0;
+    const width = forcedW !== null ? forcedW : (el.offsetWidth || 0);
+    const height = forcedH !== null ? forcedH : (el.offsetHeight || 0);
 
     // 取得 DOM 元件中心 (768x1344 空間)
     const domCenterX = left + width / 2;
@@ -553,7 +607,22 @@ function drawSingleTextToCtx(ctx, el) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `${fontWeight} ${fontSize}px ${el.style.fontFamily}`;
-    ctx.fillText(textStr, 0, 0);
+
+    if (img && img.complete) {
+        console.log(`🎨 Drawing image: ${img.src} at (${domCenterX}, ${domCenterY})`);
+        
+        // [NEW] 如果是圖片元件，使用色彩增值模式以符合預期
+        const isImage = el.classList.contains('image-element');
+        if (isImage) {
+            ctx.globalCompositeOperation = 'multiply';
+        }
+
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+        ctx.globalCompositeOperation = 'source-over'; // 還原
+    } else {
+        if (img) console.warn(`⚠️ Image not ready: ${img.src}`);
+        ctx.fillText(textStr, 0, 0);
+    }
     ctx.restore();
 }
 
@@ -592,7 +661,7 @@ const oCtx = offscreenCanvas.getContext('2d');
 
 async function saveToServer(dataURL, filename, folder, config = null, inkImage = null, brushImage = null, inkPhonoImage = null) {
     try {
-        const response = await fetch('http://localhost:8000/save', {
+        const response = await fetch('/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -616,19 +685,21 @@ async function saveToServer(dataURL, filename, folder, config = null, inkImage =
 }
 
 function updateGallery(dataURL, filename) {
-    const item = document.createElement('div');
-    item.className = 'gallery-item';
-    item.innerHTML = `
-        <img src="${dataURL}" alt="${filename}">
-        <span>${new Date().toLocaleTimeString()}</span>
-    `;
-    item.onclick = () => {
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataURL;
-        link.click();
-    };
-    galleryItems.prepend(item);
+    if (galleryItems) {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+            <img src="${dataURL}" alt="${filename}">
+            <span>${new Date().toLocaleTimeString()}</span>
+        `;
+        item.onclick = () => {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.click();
+        };
+        galleryItems.prepend(item);
+    }
 }
 
 saveBtn.addEventListener('click', () => saveToPNG(false));
@@ -637,7 +708,7 @@ saveInkBtn.addEventListener('click', () => saveCalligraphyOnly());
 
 loadWorkspaceBtn.addEventListener('click', async () => {
     try {
-        const response = await fetch('http://localhost:8000/list', { method: 'POST' });
+        const response = await fetch('/list', { method: 'POST' });
         const result = await response.json();
         if (result.status === 'success') {
             workspaceList.innerHTML = '';
@@ -669,7 +740,7 @@ workspaceModal.addEventListener('click', (e) => {
 
 async function loadWorkspace(folder) {
     try {
-        const response = await fetch('http://localhost:8000/load', {
+        const response = await fetch('/load', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ folder: folder })
@@ -713,9 +784,16 @@ async function loadWorkspace(folder) {
                         createFloatingText(data);
                     });
                     
+                    // [NEW] 根據目前的按鈕狀態決定是否隱藏書法參考
+                    if (!toggleCalligraphyBtn.classList.contains('active')) {
+                        container.classList.add('hide-all-calligraphy');
+                    } else {
+                        container.classList.remove('hide-all-calligraphy');
+                    }
+
                     // [NEW] 如果有結構資訊，自動顯示區域範圍
                     showRegions = true;
-                    toggleRegionsBtn.classList.add('active');
+                    if (toggleRegionsBtn) toggleRegionsBtn.classList.add('active');
                     container.classList.add('hide-component-text');
                     
                     // 延遲一點點確保 DOM 元件渲染後再準確計算座標
@@ -724,7 +802,7 @@ async function loadWorkspace(folder) {
 
                 // [NEW] 自動從同目錄載入手寫筆跡與底圖
                 // 通過 8000 埠號存取 (已透過 Symlink 指向 characters)
-                const rootUrl = `http://localhost:8000/characters/${folder}`;
+                const rootUrl = `/characters/${folder}`;
 
                 // 1. 還原底圖
                 if (config.bgFilename) {
@@ -735,7 +813,8 @@ async function loadWorkspace(folder) {
                         const ratio = Math.min(768 / bgImg.width, 1344 / bgImg.height);
                         const w = bgImg.width * ratio;
                         const h = bgImg.height * ratio;
-                        bgCtx.drawImage(bgImg, (768 - w) / 2, (1344 - h) / 2, w, h);
+                        // [FORCE 1:1] 強制鎖定在 (0, 0) 原點，消除置中導致的位移，確保與 JSON 數據完全對齊
+                        bgCtx.drawImage(bgImg, 0, 0, w, h);
                     };
                     bgImg.src = `${rootUrl}/${config.bgFilename}`;
                 }
@@ -775,8 +854,13 @@ function createFloatingText(data) {
     textEl.style.fontFamily = data.fontFamily;
     textEl.style.fontSize = data.fontSize;
     textEl.style.fontWeight = data.fontWeight || "400";
-    textEl.style.left = data.left;
-    textEl.style.top = data.top;
+    // [RESTORED] 落實 1:1 乾淨對齊：移除所有魔法數字補償，直接以 JSON 座標為基準
+    textEl.style.left = data.left.endsWith('px') ? data.left : `${data.left}px`;
+    textEl.style.top = data.top.endsWith('px') ? data.top : `${data.top}px`;
+    
+    // [NEW] 1:1 寬高對齊
+    if (data.width) textEl.style.width = data.width.toString().endsWith('px') ? data.width : `${data.width}px`;
+    if (data.height) textEl.style.height = data.height.toString().endsWith('px') ? data.height : `${data.height}px`;
 
     // 套用 3D 旋轉與聲符參數
     textEl.dataset.rotateX = data.rotateX || 0;
@@ -789,6 +873,18 @@ function createFloatingText(data) {
     const span = document.createElement('span');
     span.textContent = data.text;
     textEl.appendChild(span);
+
+    // [NEW] 支援圖片元件
+    if (data.image) {
+        textEl.dataset.image = data.image;
+        const img = document.createElement('img');
+        img.crossOrigin = "anonymous";
+        // 自動轉換相對路徑 (相對於 characters/)
+        const charName = charNameInput.value.trim();
+        img.src = `/characters/${charName}/${data.image}`;
+        textEl.appendChild(img);
+        textEl.classList.add('image-element');
+    }
 
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
@@ -815,35 +911,28 @@ function createFloatingText(data) {
 loadBtn.addEventListener('click', () => imageLoader.click());
 
 /**
- * [NEW] 渲染結構組件的範圍邊界
+ * [RESTORED] 渲染區域邊界至畫布 (Canvas 模式)
  */
 function renderRegions() {
     rCtx.clearRect(0, 0, 768, 1344);
     if (!showRegions) return;
-
+    
     const elements = document.querySelectorAll('.text-element');
-
     elements.forEach(el => {
-        // 跳過全字底稿的圈選
+        // 跳過全字底稿與非結構部件
         if (el.classList.contains('full-char')) return;
 
-        // 使用 1:1 DOM 座標 (因為 textOverlayContainer 被設為 768x1344)
-        const left = parseFloat(el.style.left) || 0;
-        const top = parseFloat(el.style.top) || 0;
-        const width = el.offsetWidth || 0;
-        const height = el.offsetHeight || 0;
-        
-        // 考慮到 padding，稍微縮小一點會更貼合文字
-        const paddingLeft = 12, paddingTop = 6;
-        let x = left + paddingLeft;
-        let y = top + paddingTop;
-        let w = width - paddingLeft * 2;
-        let h = height - paddingTop * 2;
+        // 讀取目前的實體座標
+        const x = parseFloat(el.style.left) || 0;
+        const y = parseFloat(el.style.top) || 0;
+        const w = parseFloat(el.style.width) || el.offsetWidth || 0;
+        const h = parseFloat(el.style.height) || el.offsetHeight || 0;
 
         rCtx.strokeStyle = '#ff4444';
         rCtx.lineWidth = 3;
         rCtx.setLineDash([10, 8]);
         
+        // 2D 畫布繪製 (不支援 CSS 3D 透視變形)
         rCtx.strokeRect(x, y, w, h);
 
         rCtx.fillStyle = 'rgba(255, 68, 68, 0.08)';
@@ -855,18 +944,51 @@ toggleRegionsBtn.addEventListener('click', () => {
     showRegions = !showRegions;
     toggleRegionsBtn.classList.toggle('active', showRegions);
     
-    // [NEW] 控制組件文字隱藏
-    const container = document.getElementById('textOverlayContainer');
-    if (showRegions) {
-        container.classList.add('hide-component-text');
-        showToast("顯示結構範圍", 'info');
-        renderRegions();
-    } else {
-        container.classList.remove('hide-component-text');
-        showToast("隱藏結構範圍", 'info');
-        rCtx.clearRect(0, 0, 768, 1344);
+    // [FIXED] 透過 CSS 切換紅框與文字顯隱，解決 3D 旋轉連動問題
+    if (container) {
+        if (showRegions) {
+            container.classList.add('show-regions');
+            container.classList.add('hide-component-text');
+        } else {
+            container.classList.remove('show-regions');
+            container.classList.remove('hide-component-text');
+            rCtx.clearRect(0, 0, 768, 1344);
+        }
     }
 });
+
+toggleSketchBtn.addEventListener('click', () => {
+    const isVisible = layoutCanvas.style.display !== 'none';
+    layoutCanvas.style.display = isVisible ? 'none' : 'block';
+    toggleSketchBtn.classList.toggle('active', !isVisible);
+});
+
+toggleCalligraphyBtn.addEventListener('click', () => {
+    const isVisible = inkCanvas.style.display !== 'none';
+    const nextState = isVisible ? 'none' : 'block';
+    
+    inkCanvas.style.display = nextState;
+    toggleCalligraphyBtn.classList.toggle('active', !isVisible);
+    
+    // [NEW] 同步隱藏 HTML 書法參考文字
+    const container = document.getElementById('textOverlayContainer');
+    if (isVisible) {
+        container.classList.add('hide-all-calligraphy');
+        showToast("隱藏書法層(修正+底稿)", 'info');
+    } else {
+        container.classList.remove('hide-all-calligraphy');
+        showToast("顯示書法層(修正+底稿)", 'info');
+    }
+});
+
+if (toggleBgBtn) {
+    toggleBgBtn.addEventListener('click', () => {
+        const isVisible = bgCanvas.style.display !== 'none';
+        bgCanvas.style.display = isVisible ? 'none' : 'block';
+        toggleBgBtn.classList.toggle('active', !isVisible);
+        showToast(isVisible ? "隱藏底圖層(原始)" : "顯示底圖層(原始)", 'info');
+    });
+}
 
 // 在視窗大小改變或內容變動後重新渲染範圍
 window.addEventListener('resize', () => {
@@ -943,11 +1065,9 @@ imageLoader.addEventListener('change', (e) => {
             const ratio = Math.min(768 / img.width, 1344 / img.height);
             const w = img.width * ratio;
             const h = img.height * ratio;
-            const x = (768 - w) / 2;
-            const y = (1344 - h) / 2;
-            // 將底圖繪製至專屬 bgCanvas，不清除現有草稿
+            // [FORCE 1:1] 統一以 (0, 0) 為原點，這與 JSON 紀錄的絕對座標格式一致
             bgCtx.clearRect(0, 0, 768, 1344);
-            bgCtx.drawImage(img, x, y, w, h);
+            bgCtx.drawImage(img, 0, 0, w, h);
         };
         img.src = event.target.result;
     };
@@ -976,7 +1096,7 @@ async function saveWorkspace() {
     // 儲存工作區時，我們不產生新的編號圖檔，而是更新該目錄的基礎資產
     // 我們傳送一個空檔名告訴伺服器：僅更新 config/ink/brush
     try {
-        const response = await fetch('http://localhost:8000/save', {
+        const response = await fetch('/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1034,3 +1154,122 @@ window.addEventListener('resize', () => {
     }, 250); // 防抖動設計，避免過度頻繁計算
 });
 
+// --- [NEW] CLI Control System ---
+async function pollRemoteCommands() {
+    try {
+        const response = await fetch('http://localhost:8001/poll');
+        const data = await response.json();
+        if (data.status === 'success' && data.commands && data.commands.length > 0) {
+            data.commands.forEach(cmd => handleRemoteCommand(cmd));
+        }
+    } catch (err) {
+        // 輪詢失敗通常是伺服器暫時未啟動，不報警以免干擾
+    }
+    setTimeout(pollRemoteCommands, 500); // 500ms 輪詢一次
+}
+
+function handleRemoteCommand(cmd) {
+    console.log("🎮 收到遠端指令:", cmd);
+    const { action, params } = cmd;
+
+    switch (action) {
+        case 'load':
+            if (params && params.name) {
+                charNameInput.value = params.name;
+                // 觸發載入邏輯
+                loadWorkspace(params.name);
+                showToast(`🤖 CLI: 載入工作區 [${params.name}]`, 'info');
+            }
+            break;
+        case 'save':
+            saveWorkspace();
+            showToast(`🤖 CLI: 執行儲存工作區`, 'info');
+            break;
+        case 'toggle_regions':
+            toggleRegionsBtn.click();
+            break;
+        case 'clear':
+            if (confirm("📢 CLI 指令要求清除畫布，是否執行？")) {
+                clearBtn.click();
+            }
+            break;
+        case 'select':
+            if (params && params.text) {
+                const elements = Array.from(document.querySelectorAll('.text-element'));
+                const target = elements.find(el => el.textContent.trim() === params.text || (el.dataset.text && el.dataset.text.trim() === params.text));
+                if (target) {
+                    target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+                    showToast(`🤖 CLI: 已選取部件 [${params.text}]`, 'info');
+                } else {
+                    showToast(`⚠️ CLI: 找不到部件 [${params.text}]`, 'warning');
+                }
+            }
+            break;
+        case 'screenshot':
+            captureAndUploadScreenshot();
+            showToast(`🤖 CLI: 正在擷取並上傳截圖...`, 'info');
+            break;
+        case 'rotate':
+            if (activeTextObj && params && params.axis && params.deg !== undefined) {
+                const axis = params.axis.toUpperCase(); // X, Y, Z
+                activeTextObj.dataset[`rotate${axis}`] = params.deg;
+                updateTextTransform(activeTextObj);
+                showToast(`🤖 CLI: 旋轉物件 ${axis} 軸至 ${params.deg}°`, 'info');
+            }
+            break;
+        case 'opacity':
+            if (params && params.value !== undefined) {
+                bgCanvas.style.opacity = params.value;
+                showToast(`🤖 CLI: 底圖透明度設為 ${params.value}`, 'info');
+            }
+            break;
+        case 'ping':
+            showToast("🤖 CLI: 連線測試成功", 'success');
+            break;
+        default:
+            console.warn("⚠️ 未知的 CLI 指令:", action);
+    }
+}
+
+async function captureAndUploadScreenshot() {
+    // 建立臨時 Canvas 用於合併
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 768;
+    tempCanvas.height = 1344;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // 依序繪製圖層 (背景 -> 佈局 -> 筆跡 -> 區域框)
+    tempCtx.drawImage(bgCanvas, 0, 0);
+    tempCtx.drawImage(layoutCanvas, 0, 0);
+    tempCtx.drawImage(inkCanvas, 0, 0);
+    tempCtx.drawImage(regionCanvas, 0, 0);
+
+    // [NEW] 也將互動文字與圖片層合併進來
+    document.querySelectorAll('.text-element').forEach(el => {
+        // 確保寬高在 headless 環境下也能讀取 (優先使用 style)
+        const width = parseFloat(el.style.width) || el.offsetWidth || 0;
+        const height = parseFloat(el.style.height) || el.offsetHeight || 0;
+        
+        // 傳遞 width/height 給繪圖函數
+        drawSingleTextToCtx(tempCtx, el, width, height);
+    });
+
+    const base64Image = tempCanvas.toDataURL('image/png');
+
+    try {
+        await fetch('/upload_screenshot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image })
+        });
+        console.log("📸 截圖已上傳至伺服器");
+    } catch (err) {
+        console.error("❌ 截圖上傳失敗:", err);
+    }
+}
+
+// 啟動指令輪詢
+pollRemoteCommands();
+
+// [FIXED] 強制執行初始化渲染紅框
+setTimeout(renderRegions, 500);

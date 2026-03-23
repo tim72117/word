@@ -139,14 +139,12 @@ canvas {
     /* 書法層在最上層 */
     background: transparent;
     opacity: 0.95;
-    /* 移除 invert 反相效果，統一使用 WYSIWYG 所見即所得顏色 */
     pointer-events: none;
-    /* 預設不接收事件 */
 }
 
 #regionCanvas {
-    z-index: 5;
-    /* 範圍標示層在最上層，甚至在書法層之上，但下方有 pointer-events: none */
+    /* [FIXED] 確保紅框在所有底圖與部件文字之上，以便對位參考 */
+    z-index: 10;
     background: transparent;
     pointer-events: none;
 }
@@ -387,15 +385,33 @@ button.primary:hover {
     align-items: center;
     justify-content: center;
     user-select: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 0;
     white-space: nowrap;
+    /* [NEW] 互動介面去背：色彩增值模式 */
+    mix-blend-mode: multiply;
+}
+
+.text-element img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* [FIXED] 確保裁切後的部件圖片精確對準左上角，防止置中位移 */
+    object-position: left top;
+    display: block;
+    pointer-events: none;
 }
 
 .text-element:hover,
 .text-element.active {
     border: 2px dashed rgba(99, 102, 241, 0.8);
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* 徹底隱藏書法參考文字內容，但保留容器空間以利紅框繪製 */
+.hide-all-calligraphy .text-element:not(.image-element) span {
+    display: none !important;
 }
 
 /* [NEW] 隱藏組件文字，保留全字底稿 */

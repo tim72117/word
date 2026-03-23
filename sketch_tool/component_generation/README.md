@@ -14,10 +14,14 @@ python component_generation/generate_reference_box.py --char 聽 --components �
 將「完全由 AI 產出的水墨渲染草圖」（含有白底）透過反轉亮度 (Luminance Alpha Masking) 的物理運算，轉化為完美具備重疊透視效果的去背圖像。該機制可確保微弱的淡墨與邊緣枯筆都能如實化作漸層透明度。
 
 **使用方法**：
-## 3. DOM 解析與截圖爬蟲 (`sketch_cli.py`)
-原本在外層的自動化截圖兵器，現已統一歸入 `component_generation`。功能為自動啟動瀏覽器、無頭造訪 Sketch Tool 網頁、透過執行 JS 計算各部件絕對的 DOM 邊界，並執行精確裁切與擷取。主要用於初期建立「帶有原底圖」的參考校對檔案。
+```bash
+python component_generation/remove_background.py --src /路徑/到/白底原圖.png --dst ../characters/聽/etymology_全新部件.png
+```
+
+## 3. 原始圖像解析與分拆 (`analyze_structure.py`)
+原本位於 `analysis/` 資料夾中，現已統一整合至 `component_generation`。功能為分析原始輸入的包含中文字源演化的圖片網格，自動識別內部組件輪廓的邊界，並進行切片與分拆。主要用於專案初期，將複雜的考古圖像分割成可獨立利用的字源部件。
 
 **使用方法**：
 ```bash
-python component_generation/sketch_cli.py
+python component_generation/analyze_structure.py
 ```

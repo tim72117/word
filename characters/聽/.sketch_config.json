@@ -1,58 +1,168 @@
 {
   "charName": "聽",
-  "bgFilename": "ting_structural_sketch_v5_flat.png",
+  "bgFilename": "_raw_base.png",
+  "componentExplanations": [
+    {
+      "components": [
+        "耳"
+      ],
+      "label": "耳朵",
+      "explanation": "傾聽的核心，用耳朵接收聲音。"
+    },
+    {
+      "components": [
+        "十",
+        "目",
+        "一"
+      ],
+      "label": "正直注視",
+      "isIdeographic": true,
+      "explanation": "眼睛（目）正直（十）且專一（一）地看著對方，表現出專注與尊重。"
+    },
+    {
+      "components": [
+        "一",
+        "心"
+      ],
+      "label": "一心一意",
+      "isIdeographic": true,
+      "explanation": "心境保持純粹與統一（一），全神貫注地感受說話者的情感。"
+    }
+  ],
+  "deconstructionPlan": {
+    "columns": [
+      {
+        "parts": [
+          "耳"
+        ]
+      },
+      {
+        "parts": [
+          "十",
+          "目",
+          "一",
+          "心"
+        ]
+      }
+    ]
+  },
+  "labelMap": {
+    "耳": "Ear",
+    "十": "Ten",
+    "目": "Mu",
+    "一": "Yi",
+    "心": "Heart"
+  },
   "elements": [
     {
-      "text": "目",
+      "text": "聽",
       "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "400px",
-      "left": "184px",
-      "top": "150px",
+      "color": "rgba(255, 255, 255, 0.15)",
+      "fontSize": "900px",
+      "left": "-66.0px",
+      "top": "212.0px",
       "rotateX": 0,
       "rotateY": 0,
       "rotateZ": 0,
       "isPhonetic": false,
-      "note": "上方核心觀察部件"
+      "note": "全字參考底稿"
+    },
+    {
+      "text": "耳",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "644px",
+      "left": "0px",
+      "top": "444px",
+      "width": "293px",
+      "height": "586px",
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_1_row_1",
+      "note": "計畫解構 (欄1)"
     },
     {
       "text": "十",
       "fontFamily": "'MasaFont', cursive",
-      "color": "#ff4444",
-      "fontSize": "250px",
-      "left": "259px",
-      "top": "120px",
-      "rotateX": 0,
-      "rotateY": 0,
+      "color": "#ffffff",
+      "fontSize": "397px",
+      "left": "294px",
+      "top": "310px",
+      "width": "361px",
+      "height": "180px",
       "rotateZ": 0,
       "isPhonetic": false,
-      "note": "疊加於目上的專注準星"
+      "deconstructionMethod": "plan_col_2_row_1",
+      "note": "計畫解構 (欄2)"
+    },
+    {
+      "text": "目",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "441px",
+      "left": "331px",
+      "top": "503px",
+      "width": "401px",
+      "height": "218px",
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_2_row_2",
+      "note": "計畫解構 (欄2)"
     },
     {
       "text": "一",
       "fontFamily": "'MasaFont', cursive",
       "color": "#ffffff",
-      "fontSize": "600px",
-      "left": "84px",
-      "top": "550px",
-      "rotateX": 0,
-      "rotateY": 0,
+      "fontSize": "276px",
+      "left": "368px",
+      "top": "750px",
+      "width": "251px",
+      "height": "37px",
       "rotateZ": 0,
       "isPhonetic": false,
-      "note": "中央連貫部件"
+      "deconstructionMethod": "plan_col_2_row_3",
+      "note": "計畫解構 (欄2)"
     },
     {
       "text": "心",
       "fontFamily": "'MasaFont', cursive",
       "color": "#ffffff",
-      "fontSize": "350px",
-      "left": "209px",
-      "top": "850px",
-      "rotateX": 0,
-      "rotateY": 0,
+      "fontSize": "519px",
+      "left": "295px",
+      "top": "802px",
+      "width": "472px",
+      "height": "229px",
       "rotateZ": 0,
       "isPhonetic": false,
-      "note": "底部核心意念部件"
+      "deconstructionMethod": "plan_col_2_row_4",
+      "note": "計畫解構 (欄2)"
+    },
+    {
+      "text": "",
+      "image": "etymology_ear.png",
+      "left": "0px",
+      "top": "444px",
+      "width": "293px",
+      "height": "586px",
+      "note": "字源素描圖案"
+    },
+    {
+      "text": "",
+      "image": "etymology_耳.png",
+      "left": "0px",
+      "top": "444px",
+      "width": "293px",
+      "height": "586px",
+      "note": "Auto-generated etymology for 耳"
+    },
+    {
+      "text": "",
+      "image": "etymology_正直注視.png",
+      "left": "294px",
+      "top": "310px",
+      "width": "438px",
+      "height": "477px",
+      "note": "字源素描圖案 (準星與神眼)"
     }
   ]
 }

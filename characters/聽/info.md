@@ -59,3 +59,30 @@
 - **中文提示詞**：高品質最終渲染圖，針對中文字「聽」的視覺演譯。嚴格遵循參考草圖 (v5) 的簡鍊構圖。使用**寫意水墨技法**在溫潤的古籍紙張上渲染。筆觸輕鬆、隨性且具備墨韻感。色彩極其淡雅，眼睛與線條微透金色。背景為廣大的白色留白，呈現出一種「大音希聲」的輕鬆禪意感。高品質遊戲資產。
 - **English Prompt**: High-quality final render for the visual interpretation of the character "Ting" (Listen). Strictly following the concise composition of the reference sketch (v5). Apply **Xieyi-style ink wash techniques** on warm ancient paper texture. Brushstrokes should be relaxed, spontaneous, and emphasize the flow of ink. Colors are extremely subtle, with a hint of gold on the eye and lines. Background: Vast white void (Liu-bai), presenting a relaxed Zen-like atmosphere of "Great sound is silent" (Da-yin-xi-sheng). Premium game asset quality. NO TEXT. Reference Image is the layout guide.
 
+
+## 7. 局部組件生成提示詞：正直注視 (Crosshair & Eye)
+為了讓各別組件在 UI 中有更高解析度的獨立展示，特別針對「十、目」進行了局部解構與草圖重製。
+
+### 第一階段：純幾何線框底圖 (etymology_eye_crosshair_structural.png)
+- **參考影像**：由後端腳本讀取 JSON 座標直接產生的純聯集尺寸圖 (reference_max_box.png)
+- **中文提示詞**：極簡結構素描，包含上方一個幾何化的十字準星，以及中間一隻風格化的眼睛。風格：乾淨、纖細的黑線，極簡線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字。
+- **English Prompt**: A minimalist structural sketch containing a geometric crosshair/target reticle at the top, and a stylized eye in the middle. Style: Clean, ultra-thin black lines, minimalist line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters. ONLY draw the geometric crosshair and the minimalist eye.
+
+### 第二階段：現代水墨渲染圖 (etymology_正直注視.png)
+- **參考影像**：第一階段生成的結構線稿
+- **中文提示詞**：高品質最終渲染圖，嚴格遵循參考草圖（上方準星與下方風格化眼睛）的構圖。將簡單的線框轉化為美麗的「現代中式水墨畫」，結合極簡美學與有表現力的筆觸及微妙的墨跡暈染效果。風格：現代中式水墨畫。稀疏但優雅的水墨細節。眼睛應顯得深邃、專注且具書卷氣。準星應由迅速、自信的筆觸構成。背景：純淨白色虛空。柔和漫射光。高品質遊戲資產。優雅大氣的氛圍。絕對不包含漢字，並保持乾淨分離的佈局。
+- **English Prompt**: High-quality final render, strictly following the composition and perspective provided in the reference sketch (a crosshair/target reticle above a stylized eye). Transform the simple wireframe into a beautiful 'Modern Chinese ink wash painting' (水墨畫) combining minimalist aesthetics with expressive brushstrokes and subtle ink bleeding (暈染). Style: Modern Chinese ink wash painting. Sparse but elegant water-ink details. The eye should feel deep, focused and scholarly. The crosshair should be composed of swift, confident brush strokes. Background: Pure clear white void. Soft, diffuse lighting. Premium game asset quality. Elegant and majestic atmosphere. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain the clean, separated layout (crosshair on top, eye below).
+
+## 8. 局部組件生成提示詞：耳 (Ear)
+針對「聽」字左半部「耳」的純淨解構與草圖重製。
+
+### 第一階段：純幾何線框底圖 (etymology_ear_structural.png)
+- **參考影像**：依據「耳」部原比例產生的純白尺寸圖 (reference_ear_box.png)
+- **中文提示詞**：僅依據提供空白參考圖的矩形長寬比，生成極簡結構素描，呈現古代風格化的「耳」字源符號。風格：乾淨、纖細的黑線，極簡幾何線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字與標籤，確保耳符號置中。
+- **English Prompt**: Based ONLY on the rectangular aspect ratio of the provided blank reference image, generate a minimalist structural sketch of an ancient stylized Chinese ear (耳) etymology symbol. Style: Clean, ultra-thin black lines, minimalist geometric line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters, no labels. ONLY draw the minimalist ear symbol centered in the image.
+
+### 第二階段：現代水墨渲染圖 (etymology_耳.png)
+- **參考影像**：第一階段生成的結構線稿
+- **中文提示詞**：高品質最終渲染圖，嚴格遵循參考草圖中「耳」的構圖與透視。將簡單的線框轉化為美麗的「現代中式水墨畫」，結合極簡美學與有表現力的筆觸及微妙的墨跡暈染效果。風格：現代中式水墨畫。稀疏但優雅的水墨細節。耳朵應顯得具有機感、具書卷體現，並以迅速自信的筆觸精美呈現。背景：純淨白色虛空。柔和漫射光。高品質遊戲資產。優雅大氣的氛圍。絕對不包含漢字，並精確維持參考圖的比例與置中佈局。
+- **English Prompt**: High-quality final render, strictly following the composition and perspective provided in the reference structural sketch of the stylized ear. Transform the simple wireframe into a beautiful 'Modern Chinese ink wash painting' (水墨畫) combining minimalist aesthetics with expressive brushstrokes and subtle ink bleeding (暈染). Style: Modern Chinese ink wash painting. Sparse but elegant water-ink details. The ear should feel organic, scholarly, and beautifully crafted with swift, confident brush strokes. Background: Pure clear white void. Soft, diffuse lighting. Premium game asset quality. Elegant and majestic atmosphere. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain the exact proportions and centered layout of the reference image.
+

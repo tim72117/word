@@ -5,32 +5,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sketch Tool - Outline Master</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
     <style>
         @font-face {
             font-family: 'MasaFont';
             font-weight: 200;
             src: url('fonts/MasaFont-ExtraLight.ttf') format('truetype');
         }
+
         @font-face {
             font-family: 'MasaFont';
             font-weight: 300;
             src: url('fonts/MasaFont-Light.ttf') format('truetype');
         }
+
         @font-face {
             font-family: 'MasaFont';
             font-weight: 400;
             src: url('fonts/MasaFont-Regular.ttf') format('truetype');
         }
+
         @font-face {
             font-family: 'MasaFont';
             font-weight: 500;
             src: url('fonts/MasaFont-Medium.ttf') format('truetype');
         }
+
         @font-face {
             font-family: 'MasaFont';
             font-weight: 700;
             src: url('fonts/MasaFont-Bold.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Bakudai';
+            src: url('fonts/Bakudai-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'TW-Kai';
+            src: url('fonts/TW-Kai-98_1.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
     </style>
 </head>
@@ -44,11 +62,13 @@
                 <input type="file" id="imageLoader" accept="image/*" style="display: none;">
                 <button id="loadBtn">載入圖檔</button>
                 <button id="loadWorkspaceBtn">切換工作區</button>
-                <button id="saveBackBtn" class="primary" style="display: none;">直接存回</button>
-                <button id="clearBtn">清除</button>
-                <button id="undoBtn">復原</button>
-                <button id="toggleRegionsBtn">顯示結構範圍</button>
-                <input type="text" id="charNameInput" placeholder="字名 (如: 宛)" style="display: none;">
+                <div class="tool-group">
+                    <button id="toggleSketchBtn" class="layer-btn">草圖</button>
+                    <button id="toggleCalligraphyBtn" class="layer-btn">書法</button>
+                    <button id="toggleBgBtn" class="layer-btn">底圖</button>
+                    <button id="toggleRegionsBtn" class="active">顯示結構範圍</button>
+                </div>
+                <input type="text" id="charNameInput" placeholder="字名 (如: 聽)" style="display: none;">
                 <button id="saveInkBtn">儲存透明書法</button>
                 <button id="saveWorkspaceBtn" class="primary">儲存工作區</button>
                 <button id="saveToFolderBtn" class="primary">存入字資料夾</button>
@@ -77,6 +97,8 @@
                 <input type="text" id="calligraphyInput" placeholder="輸入字">
                 <select id="fontSelect" style="width: 120px;">
                     <option value="'MasaFont', cursive" selected>正風毛筆 (Masa)</option>
+                    <option value="'Bakudai', cursive">莫大毛筆 (Bakudai)</option>
+                    <option value="'TW-Kai', serif">全字庫楷體 (TW-Kai)</option>
                 </select>
 
                 <select id="fontWeightSelect" style="width: 80px;">
@@ -107,6 +129,7 @@
                     <span>Z: <span id="valZ">0</span>°</span>
                     <input type="range" id="rotateZ" min="-180" max="180" value="0">
                 </div>
+                <button id="resetRotationsBtn" style="margin-top: 10px; width: 100%; background: #ef4444; border: none; color: white; padding: 5px; cursor: pointer; border-radius: 4px;">重設所有旋轉 (Reset All)</button>
             </div>
             <div class="tool-group">
                 <label>筆刷大小</label>
@@ -120,10 +143,6 @@
                 <div class="color-option" data-color="#000000" style="background: #000000; border: 1px solid #444;">
                 </div>
             </div>
-        </div>
-        <div class="drafts-gallery">
-            <h3>本次草稿 (點擊下載)</h3>
-            <div id="galleryItems" class="gallery-items"></div>
         </div>
     </div>
     <div id="toastContainer"></div>
@@ -141,7 +160,7 @@
         </div>
     </div>
 
-    <script src="main.js?v=11"></script>
+    <script src="main.js?v=12"></script>
 </body>
 
 </html>

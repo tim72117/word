@@ -1,0 +1,104 @@
+{
+  "charName": "鼻",
+  "bgFilename": "_raw_base.png",
+  "componentExplanations": [
+    {
+      "components": [
+        "自"
+      ],
+      "label": "鼻子",
+      "explanation": "原意是鼻子的形狀，在古代也代表自己。"
+    },
+    {
+      "components": [
+        "田"
+      ],
+      "label": "面部區域",
+      "explanation": "象徵鼻子下方的面部器官與連結。"
+    },
+    {
+      "components": [
+        "廾"
+      ],
+      "label": "基座",
+      "explanation": "支撐整體鼻部構造的基座部分。"
+    }
+  ],
+  "deconstructionPlan": {
+    "columns": [
+      {
+        "parts": [
+          "自",
+          "田",
+          "廾"
+        ],
+        "ySplits": [
+          325,
+          545
+        ]
+      }
+    ]
+  },
+  "labelMap": {
+    "自": "Self",
+    "田": "Field",
+    "廾": "Base"
+  },
+  "elements": [
+    {
+      "text": "鼻",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "rgba(255, 255, 255, 0.15)",
+      "fontSize": "900px",
+      "left": "-66.0px",
+      "top": "215.0px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "全字參考底稿"
+    },
+    {
+      "text": "自",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "343px",
+      "left": "199px",
+      "top": "255px",
+      "width": "360px",
+      "height": "312px",
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_1_row_1",
+      "note": "計畫解構 (欄1)"
+    },
+    {
+      "text": "田",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "484px",
+      "left": "169px",
+      "top": "580px",
+      "width": "440px",
+      "height": "207px",
+      "rotateZ": 90,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_1_row_2",
+      "note": "計畫解構 (欄1)"
+    },
+    {
+      "text": "廾",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "806px",
+      "left": "19px",
+      "top": "800px",
+      "width": "733px",
+      "height": "286px",
+      "rotateZ": 90,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_1_row_3",
+      "note": "計畫解構 (欄1)"
+    }
+  ]
+}

@@ -1,1 +1,6 @@
-gemini_ai_studio/.env
+.DS_Store
+**/.DS_Store
+.env
+**/.env
+*.log
+**/*.log

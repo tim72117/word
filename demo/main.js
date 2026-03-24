@@ -77,30 +77,42 @@ function drawOneCard(index) {
 
                 const bgImg = config.bgFilename ? `${rootUrl}/${config.bgFilename}` : 'card_face.png';
 
-                // 動態生成文字元件
+                // 動態生成解說圖片（改從 componentExplanations 提取，與步驟 1:1 綁定）
                 let elementsHtml = '';
-                if (config.elements && config.elements.length > 0) {
-                    elementsHtml = config.elements.map(el => {
+                if (config.componentExplanations && config.componentExplanations.length > 0) {
+                    elementsHtml = config.componentExplanations.map((step, sIdx) => {
+                        if (!step.image) return '';
+
                         const style = `
-                            left: ${el.left};
-                            top: ${el.top};
-                            font-size: ${el.fontSize};
-                            font-family: ${el.fontFamily};
-                            color: ${el.color};
-                            transform: rotateX(${el.rotateX || 0}deg) rotateY(${el.rotateY || 0}deg) rotateZ(${el.rotateZ || 0}deg);
+                            left: ${step.left || '0px'};
+                            top: ${step.top || '0px'};
+                            width: ${step.width || '100%'};
+                            height: ${step.height || 'auto'};
+                            position: absolute;
+                            opacity: 1;
+                            pointer-events: none;
+                            z-index: 100;
+                            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
                         `;
-                        return `<span class="char-element" style="${style}">${el.text}</span>`;
+                        const className = 'etymology-image';
+                        const filenameData = `data-filename="${step.image}"`;
+                        const stepIndexData = `data-step-index="${sIdx}"`;
+
+                        return `<img src="${rootUrl}/${step.image}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
                     }).join('');
                 }
 
                 cardContent = `
                     <div class="card-inner">
                         <div class="face face-front">
-                            <img src="${bgImg}" alt="Card Face" loading="eager" class="bg-layer">
-                            <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer">
-                            <img src="${rootUrl}/ink_phono.png" alt="Phonetic Ink" class="ink-layer phono-ink" onerror="this.style.display='none'">
-                            <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer">
-                            ${elementsHtml}
+                            <div class="stage-container">
+                                <img src="${bgImg}" alt="Card Face" loading="eager" class="bg-layer" onerror="this.src='card_face.png'">
+                                <div class="component-highlight"></div>
+                                <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer" onerror="this.style.display='none'">
+                                <img src="${rootUrl}/ink_phono.png" alt="Phonetic Ink" class="ink-layer phono-ink" onerror="this.style.display='none'">
+                                <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer" onerror="this.style.display='none'">
+                                ${elementsHtml}
+                            </div>
                         </div>
                         <div class="face face-back"></div>
                     </div>
@@ -167,23 +179,81 @@ function drawOneCard(index) {
             const info = document.createElement('div');
             info.className = 'char-info-panel';
             info.innerHTML = `
-                <div class="info-title">字源演變邏輯</div>
+                <div class="info-title">字源總結</div>
                 <div>${config.evolution}</div>
+                <div class="info-hint">點擊看解構</div>
             `;
             card.querySelector('.face-front').appendChild(info);
+
+            // 分步解說面板
+            const stepInfo = document.createElement('div');
+            stepInfo.className = 'step-info-panel';
+            card.querySelector('.face-front').appendChild(stepInfo);
+
+            let currentStep = -1; // -1: 初始, 0+: 解說步驟, last+1: 回到總結
+            const explanations = config.componentExplanations || [];
 
             card.addEventListener('click', (e) => {
                 if (isDrawing) return;
                 e.stopPropagation();
-                const isShowing = card.classList.toggle('show-info');
 
-                // 點擊開啟說明時同步朗讀文字
-                if (isShowing && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel(); // 停止之前的朗讀
-                    const uttr = new SpeechSynthesisUtterance(config.evolution);
-                    uttr.lang = 'zh-TW';
-                    uttr.rate = 0.9; // 稍微放慢一點點以便聽得清演變邏輯
-                    window.speechSynthesis.speak(uttr);
+                currentStep++;
+                if (currentStep >= explanations.length) {
+                    // 完成解說，顯示總結
+                    currentStep = -1;
+                    card.classList.remove('in-explanation');
+                    card.classList.add('show-info');
+                    
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const uttr = new SpeechSynthesisUtterance(config.evolution);
+                        uttr.lang = 'zh-TW';
+                        window.speechSynthesis.speak(uttr);
+                    }
+                } else {
+                    // 執行具體的步驟解說
+                    card.classList.add('in-explanation');
+                    card.classList.remove('show-info');
+                    
+                    const step = explanations[currentStep];
+                    stepInfo.innerHTML = `
+                        <div class="info-title">${step.label}</div>
+                        <div>${step.explanation}</div>
+                        <div class="info-hint">(${currentStep + 1}/${explanations.length}) 點擊繼續</div>
+                    `;
+
+                    // 高亮對應部件
+                    const imgEls = card.querySelectorAll('.etymology-image');
+                    const highlightBox = card.querySelector('.component-highlight');
+
+                    // 更新高亮背影位置
+                    if (step.image) {
+                        highlightBox.style.left = step.left;
+                        highlightBox.style.top = step.top;
+                        highlightBox.style.width = step.width;
+                        highlightBox.style.height = step.height;
+                        highlightBox.style.opacity = '1';
+                    } else {
+                        highlightBox.style.opacity = '0';
+                    }
+
+                    // 精確匹配當前步驟的圖片
+                    imgEls.forEach(el => {
+                        const stepIndex = parseInt(el.dataset.stepIndex);
+                        if (stepIndex === card.currentStep) {
+                            el.style.opacity = '1';
+                        } else {
+                            el.style.opacity = '0.3'; // 半透明保留位置感
+                        }
+                    });
+
+
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const uttr = new SpeechSynthesisUtterance(step.explanation);
+                        uttr.lang = 'zh-TW';
+                        window.speechSynthesis.speak(uttr);
+                    }
                 }
             });
         }

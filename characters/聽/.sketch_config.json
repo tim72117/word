@@ -1,13 +1,18 @@
 {
   "charName": "聽",
-  "bgFilename": "_raw_base.png",
+  "bgFilename": "etymology_base.png",
   "componentExplanations": [
     {
       "components": [
         "耳"
       ],
       "label": "耳朵",
-      "explanation": "傾聽的核心，用耳朵接收聲音。"
+      "explanation": "聽東西的時候，耳朵是最重要的法寶。",
+      "image": "etymology_ear_ink.png",
+      "left": "0px",
+      "top": "444px",
+      "width": "293px",
+      "height": "586px"
     },
     {
       "components": [
@@ -17,7 +22,12 @@
       ],
       "label": "正直注視",
       "isIdeographic": true,
-      "explanation": "眼睛（目）正直（十）且專一（一）地看著對方，表現出專注與尊重。"
+      "explanation": "要把眼睛正對著對方，表示你正在認真地看、專心地聽。",
+      "image": "etymology_eye_ink.png",
+      "left": "294px",
+      "top": "310px",
+      "width": "438px",
+      "height": "477px"
     },
     {
       "components": [
@@ -26,7 +36,7 @@
       ],
       "label": "一心一意",
       "isIdeographic": true,
-      "explanation": "心境保持純粹與統一（一），全神貫注地感受說話者的情感。"
+      "explanation": "不只是聽聲音，整個人都要靜下心來，專注在對方身上。"
     }
   ],
   "deconstructionPlan": {
@@ -54,19 +64,6 @@
     "心": "Heart"
   },
   "elements": [
-    {
-      "text": "聽",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "rgba(255, 255, 255, 0.15)",
-      "fontSize": "900px",
-      "left": "-66.0px",
-      "top": "212.0px",
-      "rotateX": 0,
-      "rotateY": 0,
-      "rotateZ": 0,
-      "isPhonetic": false,
-      "note": "全字參考底稿"
-    },
     {
       "text": "耳",
       "fontFamily": "'MasaFont', cursive",
@@ -136,33 +133,6 @@
       "isPhonetic": false,
       "deconstructionMethod": "plan_col_2_row_4",
       "note": "計畫解構 (欄2)"
-    },
-    {
-      "text": "",
-      "image": "etymology_ear.png",
-      "left": "0px",
-      "top": "444px",
-      "width": "293px",
-      "height": "586px",
-      "note": "字源素描圖案"
-    },
-    {
-      "text": "",
-      "image": "etymology_耳.png",
-      "left": "0px",
-      "top": "444px",
-      "width": "293px",
-      "height": "586px",
-      "note": "Auto-generated etymology for 耳"
-    },
-    {
-      "text": "",
-      "image": "etymology_正直注視.png",
-      "left": "294px",
-      "top": "310px",
-      "width": "438px",
-      "height": "477px",
-      "note": "字源素描圖案 (準星與神眼)"
     }
   ]
 }

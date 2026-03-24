@@ -46,19 +46,6 @@
   },
   "elements": [
     {
-      "text": "鼻",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "rgba(255, 255, 255, 0.15)",
-      "fontSize": "900px",
-      "left": "-66.0px",
-      "top": "215.0px",
-      "rotateX": 0,
-      "rotateY": 0,
-      "rotateZ": 0,
-      "isPhonetic": false,
-      "note": "全字參考底稿"
-    },
-    {
       "text": "自",
       "fontFamily": "'MasaFont', cursive",
       "color": "#ffffff",

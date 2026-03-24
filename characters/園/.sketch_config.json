@@ -1,0 +1,27 @@
+{
+  "charName": "園",
+  "evolution": "「囗」代表圍牆，界定範圍；「袁」是形聲字的聲符，原指長衣，帶有寬大包容意象。兩者結合表示被圍牆圈起來種植植物的地點。",
+  "phonetic": "袁",
+  "phoneticInfo": "「袁」在此作為聲符，賦予音讀。",
+  "bgFilename": "yuan_final_render_v5.png",
+  "elements": [
+    {
+      "text": "袁",
+      "fontFamily": "\"Ma Shan Zheng\", cursive",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "150.6px",
+      "left": "65.7px",
+      "top": "180.2px",
+      "rotateX": "60",
+      "rotateY": "0",
+      "rotateZ": "0",
+      "isPhonetic": true
+    }
+  ],
+  "phonoRange": {
+    "x": 240,
+    "y": 563,
+    "width": 276,
+    "height": 174
+  }
+}

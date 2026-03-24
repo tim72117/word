@@ -1,0 +1,51 @@
+{
+  "charName": "進",
+  "bgFilename": "_raw_base.png",
+  "elements": [
+    {
+      "text": "Part_1",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "635px",
+      "left": "226px",
+      "top": "319px",
+      "width": "480px",
+      "height": "578px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "自動偵測"
+    },
+    {
+      "text": "Part_2",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "124px",
+      "left": "62px",
+      "top": "381px",
+      "width": "127px",
+      "height": "113px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "自動偵測"
+    },
+    {
+      "text": "Part_3",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "492px",
+      "left": "0px",
+      "top": "577px",
+      "width": "768px",
+      "height": "448px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "自動偵測"
+    }
+  ]
+}

@@ -7,7 +7,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 def analyze_character_structure(char_name, custom_parts=None):
     # 路徑設定 (向上追溯三層至專案根目錄)
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    # C:\www\word\sketch_tool\component_generation\analyze_structure.py
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     target_dir = os.path.join(project_root, "characters", char_name)
     os.makedirs(target_dir, exist_ok=True)
     
@@ -49,7 +50,8 @@ def analyze_character_structure(char_name, custom_parts=None):
     GAP = settings["gap"]
     
     # --- 階段一：影像生成 (PIL) ---
-    pil_img = Image.new("L", (canvas_w, canvas_h), 0)
+    # [FIXED] 改用白底黑字生成背景圖
+    pil_img = Image.new("L", (canvas_w, canvas_h), 255)
     draw = ImageDraw.Draw(pil_img)
     
     font_dir = os.path.join(project_root, "sketch_tool", "fonts")
@@ -57,26 +59,32 @@ def analyze_character_structure(char_name, custom_parts=None):
     if not os.path.exists(font_path):
         font_path = os.path.join(font_dir, "MasaFont-Regular.ttf")
         
-    if not os.path.exists(font_path): font = ImageFont.load_default()
-    else: font = ImageFont.truetype(font_path, 900)
+    # [FIXED] 統一所有字符使用相同的字型大小以求視覺統一（確保 650px 不會超出 768px 畫布寬度）
+    actual_size = 650
+    if not os.path.exists(font_path): 
+        font = ImageFont.load_default()
+    else: 
+        font = ImageFont.truetype(font_path, actual_size)
 
+    # 計算最終座標 (置中對齊)
     bbox = draw.textbbox((0, 0), char_name, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    tx, ty = (canvas_w - tw)//2, (canvas_h - th)//2 - bbox[1]
-    draw.text((tx, ty), char_name, font=font, fill=255)
+    tx, ty = (canvas_w - tw)//2 - bbox[0], (canvas_h - th)//2 - bbox[1]
+    draw.text((tx, ty), char_name, font=font, fill=0)
     
     raw_img_path = os.path.join(target_dir, "_raw_base.png")
     pil_img.save(raw_img_path)
-    print(f"🖼️ 已生成原始分析圖: {raw_img_path}")
+    print(f"🖼️ 已生成原始分析圖 (白底黑字): {raw_img_path}")
 
     # --- 階段二：輪廓分析 (OpenCV) ---
-    open_cv_image = np.array(pil_img)
+    # [FIXED] 內部分析仍需反相處理 (轉為黑底白字)，以符合後續 >0 的像素判斷邏輯
+    open_cv_image = 255 - np.array(pil_img)
     
     # --- 階段三：結構命名與智慧切分 (核心引擎) ---
     elements = []
     elements.append({
         "text": char_name, "fontFamily": "'MasaFont', cursive",
-        "color": "rgba(255, 255, 255, 0.15)", "fontSize": "900px",
+        "color": "rgba(255, 255, 255, 0.15)", "fontSize": f"{actual_size}px",
         "left": f"{tx:.1f}px", "top": f"{ty:.1f}px",
         "rotateX": 0, "rotateY": 0, "rotateZ": 0,
         "isPhonetic": False, "note": "全字參考底稿"
@@ -102,8 +110,11 @@ def analyze_character_structure(char_name, custom_parts=None):
 
     # 構建或獲取解構計畫
     if not decon_plan and custom_parts:
-        # 預設為全字單一垂直欄位拆分 (若需複合結構，請於各字 config 中預先定義 decon_plan)
-        decon_plan = {"columns": [{"parts": custom_parts}]}
+        # [SMART] 根據字寬比例判斷預設結構：寬字則用左右欄位，高字則用上下欄位
+        if len(custom_parts) == 2 and tw > th:
+            decon_plan = {"columns": [{"parts": [custom_parts[0]]}, {"parts": [custom_parts[1]]}]}
+        else:
+            decon_plan = {"columns": [{"parts": custom_parts}]}
 
     if decon_plan:
         print(f"📝 執行解構計畫: {json.dumps(decon_plan, ensure_ascii=False)}")
@@ -118,6 +129,9 @@ def analyze_character_structure(char_name, custom_parts=None):
             x_valleys = find_best_valleys(proj_x, num_cols-1, (canvas_w*xr[0], canvas_w*xr[1]))
         
         x_splits = [0] + x_valleys + [canvas_w]
+        if len(x_splits) < num_cols + 1:
+            # 回退策略：平均分配
+            x_splits = [int(i * canvas_w / num_cols) for i in range(num_cols + 1)]
         y_nz = np.where(np.sum(open_cv_image, axis=1) > 0)[0]
         y_overall_top, y_overall_bot = y_nz[0], y_nz[-1]
 
@@ -138,6 +152,10 @@ def analyze_character_structure(char_name, custom_parts=None):
                 y_valleys = find_best_valleys(p_y_crop, len(col_parts)-1)
             
             y_splits = [0] + y_valleys + [len(p_y_crop)]
+            # [FIXED] 修正 IndexError: 若 find_best_valleys 找不到足夠的切分點，則進行均分
+            if len(y_splits) < len(col_parts) + 1:
+                total_h = len(p_y_crop)
+                y_splits = [int(k * total_h / len(col_parts)) for k in range(len(col_parts) + 1)]
             
             for j, p_txt in enumerate(col_parts):
                 ys_rel, ye_rel = y_splits[j], y_splits[j+1]
@@ -205,13 +223,19 @@ def analyze_character_structure(char_name, custom_parts=None):
     print(f"📊 已依據配置生成預覽圖: {preview_path}")
 
     # --- 最終存檔 ---
-    final_output = {
+    # [FIXED] 讀取舊配置以保留 componentExplanations 等手動屬性
+    final_output = {}
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            final_output = json.load(f)
+            
+    final_output.update({
         "charName": char_name,
         "bgFilename": "_raw_base.png",
         "deconstructionPlan": decon_plan,
         "labelMap": label_map,
         "elements": elements
-    }
+    })
     
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(final_output, f, ensure_ascii=False, indent=2)

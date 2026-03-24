@@ -1,6 +1,6 @@
 {
   "charName": "唱",
-  "bgFilename": "etymology_base.png",
+  "bgFilename": "_raw_base.png",
   "componentExplanations": [
     {
       "components": [
@@ -9,10 +9,10 @@
       "label": "發聲器官",
       "explanation": "想要大聲唱歌，最基本的就是要張開嘴巴。",
       "image": "etymology_mouth_ink.png",
-      "left": "60px",
-      "top": "520px",
-      "width": "230px",
-      "height": "250px"
+      "left": "40px",
+      "top": "400px",
+      "width": "200px",
+      "height": "200px"
     },
     {
       "components": [
@@ -21,10 +21,10 @@
       "label": "宏亮開朗",
       "explanation": "「昌」代表光亮與宏大，形容歌聲像陽光一樣響亮傳得遠。",
       "image": "etymology_bright_ink.png",
-      "left": "740px",
-      "top": "120px",
-      "width": "200px",
-      "height": "280px"
+      "left": "270px",
+      "top": "180px",
+      "width": "430px",
+      "height": "880px"
     }
   ],
   "deconstructionPlan": {
@@ -47,40 +47,54 @@
   },
   "elements": [
     {
+      "text": "唱",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "rgba(255, 255, 255, 0.15)",
+      "fontSize": "650px",
+      "left": "59.0px",
+      "top": "314.0px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "全字參考底稿"
+    },
+    {
       "text": "口",
       "fontFamily": "'MasaFont', cursive",
       "color": "#ffffff",
-      "fontSize": "400px",
-      "left": "60px",
-      "top": "520px",
-      "width": "230px",
-      "height": "250px",
-      "rotateZ": 0,
+      "fontSize": "207px",
+      "left": "128px",
+      "top": "560px",
+      "width": "189px",
+      "height": "118px",
+      "rotateZ": 90,
       "isPhonetic": false,
-      "deconstructionMethod": "plan_col_1_row_1"
+      "deconstructionMethod": "plan_col_1_row_1",
+      "note": "計畫解構 (欄1)"
     },
     {
       "text": "昌",
       "fontFamily": "'MasaFont', cursive",
       "color": "#ffffff",
-      "fontSize": "400px",
-      "left": "740px",
-      "top": "120px",
-      "width": "200px",
-      "height": "280px",
+      "fontSize": "545px",
+      "left": "318px",
+      "top": "422px",
+      "width": "323px",
+      "height": "496px",
       "rotateZ": 0,
       "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_1"
+      "deconstructionMethod": "plan_col_2_row_1",
+      "note": "計畫解構 (欄2)"
     },
     {
-      "text": "唱",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "rgba(0, 0, 0, 0.1)",
-      "fontSize": "900px",
-      "left": "-70.0px",
-      "top": "210.0px",
-      "rotateZ": 0,
-      "note": "全字參考對位"
+      "text": "",
+      "image": "etymology_昌.png",
+      "left": "318px",
+      "top": "422px",
+      "width": "323px",
+      "height": "496px",
+      "note": "Auto-generated etymology for 昌"
     }
   ]
 }

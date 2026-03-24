@@ -13,7 +13,8 @@ def process_component(char_name, component_tag, input_path):
     4. Convert to Transparent RGBA
     5. Save and update JSON
     """
-    project_root = "/Users/caitingyu/Documents/word"
+    # [FIXED] 動態偵測專案根目錄
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     char_dir = os.path.join(project_root, "characters", char_name)
     config_path = os.path.join(char_dir, ".sketch_config.json")
     

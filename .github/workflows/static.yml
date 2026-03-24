@@ -28,8 +28,8 @@ jobs:
       - name: Prepare Deployment Artifact
         run: |
           mkdir -p _site
-          # 僅將 demo 的內容複製到 _site，-L 會自動跟隨並複製 symlink (如 characters) 的實體內容
-          cp -rL demo/* _site/
+          # 將 sketch_tool/app_demo 的內容複製到 _site，-L 會自動跟隨並複製 symlink (如 characters) 的實體內容
+          cp -rL sketch_tool/app_demo/* _site/
           # 排除開發用的產出檔案
           rm -f _site/server.log _site/server.py
           touch _site/.nojekyll

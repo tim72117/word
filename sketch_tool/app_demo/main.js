@@ -81,8 +81,7 @@ function drawOneCard(index) {
                 let elementsHtml = '';
                 if (config.componentExplanations && config.componentExplanations.length > 0) {
                     elementsHtml = config.componentExplanations.map((step, sIdx) => {
-                        if (!step.image) return '';
-
+                        const imgSource = step.image ? `${rootUrl}/${step.image}` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                         const style = `
                             left: ${step.left || '0px'};
                             top: ${step.top || '0px'};
@@ -94,11 +93,11 @@ function drawOneCard(index) {
                             z-index: 100;
                             transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
                         `;
-                        const className = 'etymology-image';
-                        const filenameData = `data-filename="${step.image}"`;
+                        const className = 'etymology-image' + (step.image ? '' : ' no-image');
+                        const filenameData = step.image ? `data-filename="${step.image}"` : '';
                         const stepIndexData = `data-step-index="${sIdx}"`;
 
-                        return `<img src="${rootUrl}/${step.image}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
+                        return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
                     }).join('');
                 }
 
@@ -226,8 +225,8 @@ function drawOneCard(index) {
                     const imgEls = card.querySelectorAll('.etymology-image');
                     const highlightBox = card.querySelector('.component-highlight');
 
-                    // 更新高亮背影位置
-                    if (step.image) {
+                    // 更新高亮背景位置（即使沒有組件圖片，也顯示範圍提示）
+                    if (step.left && step.top) {
                         highlightBox.style.left = step.left;
                         highlightBox.style.top = step.top;
                         highlightBox.style.width = step.width;

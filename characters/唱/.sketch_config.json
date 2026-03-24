@@ -8,11 +8,12 @@
       ],
       "label": "發聲器官",
       "explanation": "想要大聲唱歌，最基本的就是要張開嘴巴。",
-      "image": "etymology_mouth_ink.png",
+      "image": null,
       "left": "40px",
       "top": "400px",
       "width": "200px",
-      "height": "200px"
+      "height": "200px",
+      "note": "跳過圖像製作：通用基礎組件"
     },
     {
       "components": [
@@ -20,7 +21,7 @@
       ],
       "label": "宏亮開朗",
       "explanation": "「昌」代表光亮與宏大，形容歌聲像陽光一樣響亮傳得遠。",
-      "image": "etymology_bright_ink.png",
+      "image": "etymology_昌.png",
       "left": "270px",
       "top": "180px",
       "width": "430px",
@@ -71,7 +72,7 @@
       "rotateZ": 90,
       "isPhonetic": false,
       "deconstructionMethod": "plan_col_1_row_1",
-      "note": "計畫解構 (欄1)"
+      "note": "計畫解構 (欄1) - 跳過圖像製作"
     },
     {
       "text": "昌",

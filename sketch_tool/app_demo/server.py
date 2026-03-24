@@ -3,7 +3,7 @@ import socketserver
 import os
 from http.server import ThreadingHTTPServer
 
-PORT = 8001
+PORT = 8002
 DIRECTORY = os.getcwd()
 
 class Handler(http.server.SimpleHTTPRequestHandler):

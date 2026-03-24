@@ -29,18 +29,28 @@ body {
     align-items: center;
 }
 
-/* 手機容器 */
+/* 通用佈局容器 */
 .mobile-wrapper {
     position: relative;
-    width: 390px;
-    height: 844px;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* 動態視窗高度，會隨網址列伸縮自動調整 */
     background-color: var(--bg-color);
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
     overflow: hidden;
-    border: 8px solid #1a1a1a;
-    border-radius: 40px;
     display: flex;
     flex-direction: column;
+}
+
+/* 針對桌面端大螢幕的限制（選用） */
+@media (min-width: 600px) {
+    .mobile-wrapper {
+        max-width: 500px;
+        max-height: 90dvh;
+        border: 2px solid #1a1a1a;
+        border-radius: 40px;
+        box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+    }
 }
 
 .scene {
@@ -562,24 +572,26 @@ body {
 
 /* 控制按鈕 */
 .controls {
+    width: 100%;
     padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     position: absolute;
-    bottom: 30px;
+    bottom: 0;
     z-index: 100;
 }
 
 #resetBtn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 12px 30px;
+    padding: 10px 25px;
     border-radius: 50px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: all 0.3s;
     backdrop-filter: blur(5px);
 }

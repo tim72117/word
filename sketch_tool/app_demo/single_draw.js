@@ -8,15 +8,28 @@ let isDrawing = false;
 let drawnCards = [];
 let focusedCard = null;
 
+let wordList = [];
+let currentIndex = -1;
+
+// 初始化時取得可用字清單
+async function initWordList() {
+    try {
+        const response = await fetch('prepared_words.json');
+        wordList = await response.json();
+    } catch (e) {
+        console.error("無法讀取 prepared_words.json", e);
+    }
+}
+initWordList();
+
 deck.addEventListener('click', () => {
     if (isDrawing || drawnCards.length > 0) return;
     drawSingleCard();
 });
 
-resetBtn.addEventListener('click', resetTest);
-
-focusOverlay.addEventListener('click', () => {
-    if (focusedCard) blurCard(focusedCard);
+resetBtn.addEventListener('click', () => {
+    resetTest();
+    currentIndex = -1; // 重置索引
 });
 
 async function drawSingleCard() {
@@ -25,33 +38,86 @@ async function drawSingleCard() {
     // 隱藏提示
     document.querySelector('.deck-hint').style.opacity = '0';
 
-    // 1. 取得可用字清單 (僅限準備好的字)
-    let folders = [];
-    try {
-        const response = await fetch('prepared_words.json');
-        folders = await response.json();
-    } catch (e) {
-        console.error("無法讀取 prepared_words.json", e);
-    }
-
-    if (folders.length === 0) {
+    if (wordList.length === 0) await initWordList();
+    if (wordList.length === 0) {
         console.warn("清單為空，無法抽卡");
         isDrawing = false;
         return;
     }
 
-    const targetChar = folders[Math.floor(Math.random() * folders.length)];
+    // 首次抽選隨機起點
+    if (currentIndex < 0) {
+        currentIndex = Math.floor(Math.random() * wordList.length);
+    }
+    const targetChar = wordList[currentIndex];
 
-    // 2. 取得該字設定
+    // 取得該字設定
     let config = null;
     try {
         const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
         config = await configResp.json();
-    } catch (e) { console.warn("找不到設定檔，將嘗試預設路徑"); }
+    } catch (e) { console.warn("找不到設定檔"); }
 
     await drawOneCard(targetChar, config);
+    await sleep(400); 
+    centerCard(targetChar, config);
+    isDrawing = false;
+}
 
-    await sleep(400); // 等待抽取動畫完成
+// 手勢辨識
+let touchStartX = 0;
+let touchStartY = 0;
+
+scene.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+scene.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    // 向右划動 (右翻) 跳到下一個字
+    if (dx > 80 && Math.abs(dy) < 100) {
+        if (!isDrawing && drawnCards.length > 0) {
+            goToNextWord();
+        }
+    }
+}, { passive: true });
+
+async function goToNextWord() {
+    isDrawing = true;
+    
+    // 1. 將舊卡片翻走
+    if (drawnCards.length > 0) {
+        const oldCard = drawnCards[0];
+        oldCard.style.transition = 'all 0.6s cubic-bezier(0.45, 0, 0.55, 1)';
+        oldCard.style.transform = 'translateX(600px) translateY(-40px) translateZ(100px) rotateZ(30deg) rotateY(40deg) scale(0.1)';
+        oldCard.style.opacity = '0';
+        
+        setTimeout(() => oldCard.remove(), 600);
+        drawnCards = [];
+    }
+
+    // 2. 準備下一個字
+    if (wordList.length === 0) await initWordList();
+    currentIndex = (currentIndex + 1) % wordList.length;
+    const targetChar = wordList[currentIndex];
+
+    // 3. 隱藏舊說明
+    scene.classList.remove('show-info');
+
+    // 4. 抽新卡
+    let config = null;
+    try {
+        const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
+        config = await configResp.json();
+    } catch (e) { console.warn("找不到設定檔"); }
+
+    await drawOneCard(targetChar, config);
+    await sleep(400); 
     centerCard(targetChar, config);
     isDrawing = false;
 }
@@ -82,8 +148,7 @@ function drawOneCard(charName, config) {
         const rootUrl = `characters/${charName}`;
         if (config && config.componentExplanations && config.componentExplanations.length > 0) {
             elementsHtml = config.componentExplanations.map((step, sIdx) => {
-                if (!step.image) return '';
-
+                const imgSource = step.image ? `${rootUrl}/${step.image}` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 const style = `
                     left: ${step.left || '0px'};
                     top: ${step.top || '0px'};
@@ -95,11 +160,11 @@ function drawOneCard(charName, config) {
                     z-index: 100;
                     transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
                 `;
-                const className = 'etymology-image';
-                const filenameData = `data-filename="${step.image}"`;
+                const className = 'etymology-image' + (step.image ? '' : ' no-image');
+                const filenameData = step.image ? `data-filename="${step.image}"` : '';
                 const stepIndexData = `data-step-index="${sIdx}"`;
 
-                return `<img src="${rootUrl}/${step.image}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
+                return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
             }).join('');
         }
 
@@ -206,8 +271,8 @@ function drawOneCard(charName, config) {
                 const imgEls = card.querySelectorAll('.etymology-image');
                 const highlightBox = card.querySelector('.component-highlight');
 
-                // 更新高亮背影位置
-                if (step.image) {
+                // 更新高亮背景位置（即使沒有組件圖片，也顯示範圍提示）
+                if (step.left && step.top) {
                     highlightBox.style.left = step.left;
                     highlightBox.style.top = step.top;
                     highlightBox.style.width = step.width;

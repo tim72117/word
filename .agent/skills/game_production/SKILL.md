@@ -46,9 +46,9 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
    - **DOM 對位預覽與爬蟲截圖 (`sketch_tool/sketch_cli.py`)**：執行自動框選截圖。
 2. **高精度單一組件生成 (AI 渲染流程)**：
    - **後端基準尺寸圖提取 (`generate_reference_box.py`)**：執行腳本讀取 `.sketch_config.json` 中目標部件的絕對座標。產生一張完全相同長寬比例的「純白」參考畫布圖。**產出後必須保留，命名為 `reference_[part]_box.png`**，作為所有階段的長寬比基準。
-   - **第一階段：結構素描 (Stage 1)**：投入基準圖。要求「極簡工程線稿」、「純白背景」、「極細黑線」，**「絕對禁止出現任何現代文字、漢字或標籤」**。產出命名為 `etymology_[part]_struct.png`。
-   - **第二階段：國風藝術渲染 (Stage 2)**：**必須投入上一階段產出的 `etymology_[part]_struct.png` 作為參考影像**。將線稿轉化為具備「華麗寫意水墨」與「層次感手遊插畫」美學的藝術品。產出命名為 `etymology_[part]_ink.png`。
-   - **亮度去背轉換 (`remove_background.py`)**：使用亮度去背腳本處理 AI 生成的影像，將白底轉為全透明，墨跡呈現真實黑灰半透明層次。
+    - **第一階段：結構素描 (Stage 1)**：投入基準圖。要求「極簡工程線稿」、「**純白背景**」、「極細黑線」，**「絕對禁止出現任何現代文字、漢字或標籤」**。此階段產出應**保留白色背景 (Skip Background Removal)**，以作為下一階段 AI 生成的精確參考底稿。產出命名為 `etymology_[part]_struct.png`。
+    - **第二階段：國風藝術渲染 (Stage 2)**：**必須投入上一階段產出的 `etymology_[part]_struct.png` 作為參考影像**。將線稿轉化為具備「華麗寫意水墨」與「層次感手遊插畫」美學的藝術品。產出命名為 `etymology_[part]_ink.png`。
+    - **亮度去背轉換 (`remove_background.py` 或 `process_etymology_component.py`)**：使用亮度去背腳本處理 AI 生成的影像。**僅針對第二階段產出的 Ink Render 執行去背**，將白底轉為全透明，墨跡呈現真實黑灰半透明層次。
 3. **資訊與資源完整保留規範**：
    - 將兩階段生成的**中/英文提示詞**完整建檔於該目錄的 `info.md` 中。
    - **嚴禁刪除任何過程圖像**（包括基準框與結構素描），這些資訊對於未來的風格統一與對位微調至關重要。
@@ -59,6 +59,42 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
 - **結構素描 (Stage 1)**：`etymology_[part]_struct.png` (極簡幾何線稿)。
 - **水墨渲染 (Stage 2)**：`etymology_[part]_ink.png` (去背國風渲染圖)。
      - `[part]` 必須使用英文小寫（如：`ear`, `mouth`, `hand`）。
+
+## 數據配置規範 (Data Configuration Standards)
+為了確保設計階段與生產階段的資料銜接順暢，同時維持開發環境的整潔，`.sketch_config.json` 必須遵循以下簡化規範：
+
+### 1. 結構分離與去 redundancy
+- **全字參考分離**：全字底稿或佈局基準資訊必須獨立存放在 `reference` 欄位中，嚴禁將其混入 `elements` 數組。
+- **單位精簡**：所有長度、座標與字型大小（`left`, `top`, `width`, `height`, `fontSize`）必須使用**純數值 (Number)**，禁止帶有 `px` 單位字串。
+- **移除冗餘屬性**：
+  - 若 `rotateX`, `rotateY`, `rotateZ` 為 `0` 或 `isPhonetic` 為 `false` 時，應省略不寫。
+  - 若 `color` 為純白 (`#ffffff`) 或 `fontFamily` 為專案預設值 (`'MasaFont', cursive`)，應省略不寫。
+
+### 2. 精簡範例 (Example Struct)
+```json
+{
+  "charName": "陣",
+  "bgFilename": "_raw_base.png",
+  "reference": {
+    "fontSize": 650,
+    "left": 59,
+    "top": 344,
+    "color": "rgba(255, 255, 255, 0.15)"
+  },
+  "elements": [
+    {
+      "text": "阜",
+      "label": "Hill",
+      "fontSize": 386,
+      "left": 118,
+      "top": 532,
+      "width": 168,
+      "height": 351,
+      "note": "欄 1"
+    }
+  ]
+}
+```
 
 ## 規範維護原則 (Skill Maintenance Principles)
 - **詳盡性優先 (Exhaustive Descriptions)**：除非使用者明確要求簡化規則，否則在修改或重構 `SKILL.md` 時，**絕對禁止簡化或刪除原始的過程描述、技術細節與背景資訊**。這項原則優於任何簡潔性需求，旨在確保後續開發能完整繼承現有的技術資產。

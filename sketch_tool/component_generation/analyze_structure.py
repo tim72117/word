@@ -7,14 +7,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 def analyze_character_structure(char_name, custom_parts=None):
     # 路徑設定 (向上追溯三層至專案根目錄)
-    # C:\www\word\sketch_tool\component_generation\analyze_structure.py
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    target_dir = os.path.join(project_root, "characters", char_name)
+    target_dir = os.path.abspath(os.path.join(project_root, "characters", char_name))
     os.makedirs(target_dir, exist_ok=True)
     
-    config_path = os.path.join(target_dir, ".sketch_config.json")
+    # 核心設計配置 (設計階段使用)
+    sketch_config_path = os.path.join(target_dir, ".sketch_config.json")
     
-    # 預設全域參數 (Judgment/Mapping 全部集中於此)
+    # 預設全域參數
     default_settings = {
         "canvasSize": [768, 1344],
         "gap": 6,
@@ -29,28 +29,26 @@ def analyze_character_structure(char_name, custom_parts=None):
     settings = default_settings.copy()
     decon_plan = None
     
-    # [NEW] 嘗試從現有配置讀取 (包含所有智慧對位參數)
-    if os.path.exists(config_path):
+    # 讀取現有設計配置 (不包含正式顯示資料)
+    if os.path.exists(sketch_config_path):
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(sketch_config_path, "r", encoding="utf-8") as f:
                 old_config = json.load(f)
                 settings.update(old_config.get("settings", {}))
                 decon_plan = old_config.get("deconstructionPlan")
-                # 兼容舊版 labelMap 位置
                 if "labelMap" in old_config: settings["labelMap"].update(old_config["labelMap"])
                 
                 if not custom_parts:
                     old_elements = old_config.get("elements", [])
-                    custom_parts = [e["text"] for e in old_elements if e.get("note") != "全字參考底稿"]
+                    custom_parts = [e["text"] for e in old_elements if e.get("note") == "計畫解構" or e.get("note", "").startswith("計畫解構")]
         except Exception as e:
-            print(f"⚠️ 讀取配置時發生錯誤: {e}")
+            print(f"⚠️ 讀取設計配置時發生錯誤: {e}")
 
     # 解析參數
     canvas_w, canvas_h = settings["canvasSize"]
     GAP = settings["gap"]
     
     # --- 階段一：影像生成 (PIL) ---
-    # [FIXED] 改用白底黑字生成背景圖
     pil_img = Image.new("L", (canvas_w, canvas_h), 255)
     draw = ImageDraw.Draw(pil_img)
     
@@ -59,14 +57,12 @@ def analyze_character_structure(char_name, custom_parts=None):
     if not os.path.exists(font_path):
         font_path = os.path.join(font_dir, "MasaFont-Regular.ttf")
         
-    # [FIXED] 統一所有字符使用相同的字型大小以求視覺統一（確保 650px 不會超出 768px 畫布寬度）
     actual_size = 650
     if not os.path.exists(font_path): 
         font = ImageFont.load_default()
     else: 
         font = ImageFont.truetype(font_path, actual_size)
 
-    # 計算最終座標 (置中對齊)
     bbox = draw.textbbox((0, 0), char_name, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     tx, ty = (canvas_w - tw)//2 - bbox[0], (canvas_h - th)//2 - bbox[1]
@@ -77,10 +73,9 @@ def analyze_character_structure(char_name, custom_parts=None):
     print(f"🖼️ 已生成原始分析圖 (白底黑字): {raw_img_path}")
 
     # --- 階段二：輪廓分析 (OpenCV) ---
-    # [FIXED] 內部分析仍需反相處理 (轉為黑底白字)，以符合後續 >0 的像素判斷邏輯
     open_cv_image = 255 - np.array(pil_img)
     
-    # --- 階段三：結構命名與智慧切分 (核心引擎) ---
+    # --- 階段三：結構命名與智慧切分 ---
     elements = []
     elements.append({
         "text": char_name, "fontFamily": "'MasaFont', cursive",
@@ -108,9 +103,7 @@ def analyze_character_structure(char_name, custom_parts=None):
         possible.sort(key=lambda idx: proj[idx])
         return sorted(possible[:count])
 
-    # 構建或獲取解構計畫
     if not decon_plan and custom_parts:
-        # [SMART] 根據字寬比例判斷預設結構：寬字則用左右欄位，高字則用上下欄位
         if len(custom_parts) == 2 and tw > th:
             decon_plan = {"columns": [{"parts": [custom_parts[0]]}, {"parts": [custom_parts[1]]}]}
         else:
@@ -122,7 +115,6 @@ def analyze_character_structure(char_name, custom_parts=None):
         num_cols = len(cols)
         proj_x = np.sum(open_cv_image > 0, axis=0)
         
-        # 尋找 X 軸分欄點 (使用設定中的搜尋範圍)
         x_valleys = []
         if num_cols > 1:
             xr = settings["xSearchRange"]
@@ -130,7 +122,6 @@ def analyze_character_structure(char_name, custom_parts=None):
         
         x_splits = [0] + x_valleys + [canvas_w]
         if len(x_splits) < num_cols + 1:
-            # 回退策略：平均分配
             x_splits = [int(i * canvas_w / num_cols) for i in range(num_cols + 1)]
         y_nz = np.where(np.sum(open_cv_image, axis=1) > 0)[0]
         y_overall_top, y_overall_bot = y_nz[0], y_nz[-1]
@@ -146,13 +137,11 @@ def analyze_character_structure(char_name, custom_parts=None):
             sy_top, sy_bot = y_overall_top + nz_y[0], y_overall_top + nz_y[-1]
             p_y_crop = p_y[nz_y[0]:nz_y[-1]]
             
-            # [NEW] 優先使用手動指定的切分點 (ySplits)
             y_valleys = col_info.get("ySplits")
             if not y_valleys:
                 y_valleys = find_best_valleys(p_y_crop, len(col_parts)-1)
             
             y_splits = [0] + y_valleys + [len(p_y_crop)]
-            # [FIXED] 修正 IndexError: 若 find_best_valleys 找不到足夠的切分點，則進行均分
             if len(y_splits) < len(col_parts) + 1:
                 total_h = len(p_y_crop)
                 y_splits = [int(k * total_h / len(col_parts)) for k in range(len(col_parts) + 1)]
@@ -165,9 +154,8 @@ def analyze_character_structure(char_name, custom_parts=None):
                 if len(nx) == 0: continue
                 
                 fx, fw = xs + nx[0], nx[-1] - nx[0]
-                fy, fh = sy_top + ys_rel + ny[0] + GAP, ny[-1] - ny[0] - GAP*2
+                fy, fh = sy_top + ys_rel + ny[0], ny[-1] - ny[0]
                 
-                # 基於閾值的旋轉判定 (完全參數化，不再硬編碼特定部首)
                 rz = 90 if (fw > fh * settings["rotationThreshold"]) else 0
                 
                 elements.append({
@@ -186,31 +174,25 @@ def analyze_character_structure(char_name, custom_parts=None):
             elements.append({
                 "text": f"Part_{i+1}", "fontFamily": "'MasaFont', cursive", "color": "#ffffff",
                 "fontSize": f"{int(bh*1.1)}px", "left": f"{bx}px", "top": f"{by}px",
-                "width": f"{bw}px", "height": f"{bh}px", "rotateZ": 0, "isPhonetic": False, "note": "自動偵測"
+                "width": f"{bw}px", "height": f"{bh}px", "rotateZ": 0, "isPhonetic": false, "note": "自動偵測"
             })
 
-    # --- 階段四：預覽圖生成 (依據配置中的要素進行繪製) ---
+    # --- 階段四：預覽圖生成 ---
     preview_img = cv2.cvtColor(open_cv_image, cv2.COLOR_GRAY2BGR)
     palette = [(0,0,255), (0,255,0), (255,0,0), (0,255,255), (255,0,255), (255,255,0)]
     label_map = settings["labelMap"]
     
-    # 繪製所有在計畫中生成的元件方框
     for i, el in enumerate(elements):
         if el.get("note") == "全字參考底稿": continue
         
-        # 解析坐標 (統一格式化)
         ex = int(float(el["left"].replace("px","")))
         ey = int(float(el["top"].replace("px","")))
         ew = int(el["width"].replace("px",""))
         eh = int(el["height"].replace("px",""))
-        
-        # 循環顏色
         color = palette[(i-1)%len(palette)]
         
-        # 繪製邊框
         cv2.rectangle(preview_img, (ex, ey), (ex + ew, ey + eh), color, 4)
         
-        # 繪製背景發光標籤 (英文)
         raw_text = el.get("text", "?")
         en_label = label_map.get(raw_text, raw_text)
         label_str = f"{en_label} (Z:{el.get('rotateZ',0)})"
@@ -219,27 +201,64 @@ def analyze_character_structure(char_name, custom_parts=None):
         cv2.putText(preview_img, label_str, (ex, ey-15), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
     preview_path = os.path.join(target_dir, "_preview_structure.png")
-    cv2.imwrite(preview_path, preview_img)
-    print(f"📊 已依據配置生成預覽圖: {preview_path}")
+    try:
+        preview_rgb = cv2.cvtColor(preview_img, cv2.COLOR_BGR2RGB)
+        Image.fromarray(preview_rgb).save(preview_path)
+        print(f"📊 已依據配置生成預覽圖: {preview_path}")
+    except Exception as e:
+        print(f"❌ 無法生成預覽圖: {e}")
 
-    # --- 最終存檔 ---
-    # [FIXED] 讀取舊配置以保留 componentExplanations 等手動屬性
-    final_output = {}
-    if os.path.exists(config_path):
-        with open(config_path, "r", encoding="utf-8") as f:
-            final_output = json.load(f)
+    # --- 解析預覽圖座標 (輔助) ---
+    def parse_px(val):
+        if isinstance(val, (int, float)): return int(val)
+        return int(float(val.replace("px","")))
+
+    # --- 最終存檔 (簡化格式) ---
+    final_elements = []
+    reference_data = None
+    
+    for el in elements:
+        if el.get("note") == "全字參考底稿":
+            reference_data = {
+                "fontSize": parse_px(el["fontSize"]),
+                "left": parse_px(el["left"]),
+                "top": parse_px(el["top"]),
+                "color": el["color"]
+            }
+        else:
+            simple_el = {
+                "text": el["text"],
+                "fontSize": parse_px(el["fontSize"]),
+                "left": parse_px(el["left"]),
+                "top": parse_px(el["top"]),
+                "width": parse_px(el["width"]),
+                "height": parse_px(el["height"])
+            }
+            if el.get("rotateZ"): simple_el["rotateZ"] = el["rotateZ"]
+            if el.get("note"): simple_el["note"] = el["note"]
             
-    final_output.update({
+            # 嘗試加入 label
+            if el["text"] in label_map:
+                simple_el["label"] = label_map[el["text"]]
+                
+            final_elements.append(simple_el)
+
+    final_output = {
         "charName": char_name,
         "bgFilename": "_raw_base.png",
-        "deconstructionPlan": decon_plan,
-        "labelMap": label_map,
-        "elements": elements
-    })
+        "reference": reference_data,
+        "elements": final_elements
+    }
     
-    with open(config_path, "w", encoding="utf-8") as f:
+    # 保留部分設計參數以便下次運行
+    if settings != default_settings:
+        final_output["settings"] = settings
+    if decon_plan:
+        final_output["deconstructionPlan"] = decon_plan
+
+    with open(sketch_config_path, "w", encoding="utf-8") as f:
         json.dump(final_output, f, ensure_ascii=False, indent=2)
-    print(f"✅ 完成 '{char_name}' 配置存檔與預覽產出。")
+    print(f"✅ 完成 '{char_name}' 簡化配置存檔: {os.path.abspath(sketch_config_path)}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2: sys.exit(1)

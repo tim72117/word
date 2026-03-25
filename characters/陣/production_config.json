@@ -1,0 +1,31 @@
+{
+  "charName": "陣",
+  "bgFilename": "etymology_base.png",
+  "evolution": "將戰車（車）與士兵依據險要地形（阜）有序地排開，形成具備攻守功能的軍隊行列。",
+  "componentExplanations": [
+    {
+      "components": [
+        "阜"
+      ],
+      "label": "Hill",
+      "explanation": "「阜」代表土山。在軍事中，利用高地或防禦土丘是布陣的基礎。",
+      "image": "etymology_hill_ink.png",
+      "left": "118px",
+      "top": "532px",
+      "width": "168px",
+      "height": "351px"
+    },
+    {
+      "components": [
+        "車"
+      ],
+      "label": "Chariot",
+      "explanation": "「車」是古代戰力的核心。排列有序的兵車形成了「陣」。",
+      "image": "etymology_chariot_ink.png",
+      "left": "287px",
+      "top": "374px",
+      "width": "367px",
+      "height": "593px"
+    }
+  ]
+}

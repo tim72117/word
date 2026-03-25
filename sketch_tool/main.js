@@ -386,24 +386,50 @@ addTextBtn.addEventListener('click', async () => {
 // 工作區設定收集功能
 function getWorkspaceConfig() {
     const charName = charNameInput.value.trim();
+    // 找 reference
+    let reference = null;
+    document.querySelectorAll('.text-element.full-char').forEach(el => {
+        reference = {
+            fontSize: parseFloat(el.style.fontSize),
+            left: parseFloat(el.style.left),
+            top: parseFloat(el.style.top),
+            color: el.style.color
+        };
+    });
+
     const elements = [];
-    document.querySelectorAll('.text-element').forEach(el => {
-        elements.push({
+    document.querySelectorAll('.text-element:not(.full-char)').forEach(el => {
+        const configElement = {
             text: el.querySelector('span').textContent,
-            fontFamily: el.style.fontFamily,
-            color: el.style.color,
-            fontSize: el.style.fontSize,
-            fontWeight: el.dataset.fontWeight || "400",
-            left: el.style.left,
-            top: el.style.top,
-            width: el.style.width,
-            height: el.style.height,
-            rotateX: el.dataset.rotateX || 0,
-            rotateY: el.dataset.rotateY || 0,
-            rotateZ: el.dataset.rotateZ || 0,
-            isPhonetic: el.dataset.isPhonetic === 'true',
-            image: el.dataset.image || null
-        });
+            fontSize: parseFloat(el.style.fontSize),
+            left: parseFloat(el.style.left),
+            top: parseFloat(el.style.top),
+            width: parseFloat(el.style.width) || 0,
+            height: parseFloat(el.style.height) || 0
+        };
+
+        // 僅當不為預設值時才存儲
+        const rx = el.dataset.rotateX || 0;
+        const ry = el.dataset.rotateY || 0;
+        const rz = el.dataset.rotateZ || 0;
+        if (rx != 0) configElement.rotateX = rx;
+        if (ry != 0) configElement.rotateY = ry;
+        if (rz != 0) configElement.rotateZ = rz;
+
+        const weight = el.dataset.fontWeight || "400";
+        if (weight != "400") configElement.fontWeight = weight;
+
+        const color = el.style.color;
+        if (color && color !== 'rgb(255, 255, 255)' && color !== '#ffffff') configElement.color = color;
+
+        // fontFamily 預設為 MasaFont，若不同則存儲
+        const font = el.style.fontFamily;
+        if (font && !font.includes('MasaFont')) configElement.fontFamily = font;
+
+        if (el.dataset.isPhonetic === 'true') configElement.isPhonetic = true;
+        if (el.dataset.image) configElement.image = el.dataset.image;
+
+        elements.push(configElement);
     });
 
     // 計算聲符範圍
@@ -412,10 +438,12 @@ function getWorkspaceConfig() {
     return {
         charName,
         bgFilename: currentBgFilename,
+        reference,
         elements,
         phonoRange: phonoInfo.bounds
     };
 }
+
 
 window.addEventListener('mousemove', (e) => {
     if (isDraggingText && activeTextObj) {
@@ -759,23 +787,25 @@ async function loadWorkspace(folder) {
                 iCtx.clearRect(0, 0, 768, 1344);
                 bgCtx.clearRect(0, 0, 768, 1344);
 
-                // [NEW] 優先確保有一個「全字元件」作為佈局基準 (如果 JSON 裡沒定義的話)
+                // [NEW] 優先使用 config.reference，否則自動生成預設底稿
                 const charName = config.charName || folder;
-                if (charName && charName.length === 1) {
-                    const hasFullChar = config.elements && config.elements.find(e => e.text === charName);
-                    if (!hasFullChar) {
-                        const defaultFont = fontSelect.value; // 使用當前選中的有效字型
-                        createFloatingText({
-                            text: charName,
-                            fontFamily: defaultFont,
-                            color: "rgba(255, 255, 255, 0.4)", // 使用較淡的顏色作為底稿參考
-                            fontSize: "600px",
-                            fontWeight: "400",
-                            left: "0",
-                            top: "0",
-                            isPhonetic: false
-                        });
-                    }
+                if (config.reference) {
+                    createFloatingText({
+                        text: charName,
+                        ...config.reference
+                    });
+                } else if (charName && charName.length === 1) {
+                    const defaultFont = fontSelect.value;
+                    createFloatingText({
+                        text: charName,
+                        fontFamily: defaultFont,
+                        color: "rgba(255, 255, 255, 0.4)",
+                        fontSize: "600px",
+                        fontWeight: "400",
+                        left: "0",
+                        top: "0",
+                        isPhonetic: false
+                    });
                 }
 
                 // 還原文字元件
@@ -850,17 +880,32 @@ function createFloatingText(data) {
     const container = document.getElementById('textOverlayContainer');
     const textEl = document.createElement('div');
     textEl.className = 'text-element';
-    textEl.style.color = data.color;
-    textEl.style.fontFamily = data.fontFamily;
-    textEl.style.fontSize = data.fontSize;
-    textEl.style.fontWeight = data.fontWeight || "400";
-    // [RESTORED] 落實 1:1 乾淨對齊：移除所有魔法數字補償，直接以 JSON 座標為基準
-    textEl.style.left = data.left.endsWith('px') ? data.left : `${data.left}px`;
-    textEl.style.top = data.top.endsWith('px') ? data.top : `${data.top}px`;
+    const defaultFont = "'MasaFont', cursive";
+    const defaultColor = "#ffffff";
+
+    textEl.style.color = data.color || defaultColor;
+    textEl.style.fontFamily = data.fontFamily || defaultFont;
     
-    // [NEW] 1:1 寬高對齊
-    if (data.width) textEl.style.width = data.width.toString().endsWith('px') ? data.width : `${data.width}px`;
-    if (data.height) textEl.style.height = data.height.toString().endsWith('px') ? data.height : `${data.height}px`;
+    const size = data.fontSize || 100;
+    textEl.style.fontSize = typeof size === 'number' ? `${size}px` : size;
+    
+    textEl.style.fontWeight = data.fontWeight || "400";
+
+    // 處理座標
+    const l = data.left ?? 0;
+    const t = data.top ?? 0;
+    textEl.style.left = typeof l === 'number' ? `${l}px` : (l.endsWith('px') ? l : `${l}px`);
+    textEl.style.top = typeof t === 'number' ? `${t}px` : (t.endsWith('px') ? t : `${t}px`);
+    
+    // 處理寬高
+    if (data.width !== undefined) {
+        const w = data.width;
+        textEl.style.width = typeof w === 'number' ? `${w}px` : (w.toString().endsWith('px') ? w : `${w}px`);
+    }
+    if (data.height !== undefined) {
+        const h = data.height;
+        textEl.style.height = typeof h === 'number' ? `${h}px` : (h.toString().endsWith('px') ? h : `${h}px`);
+    }
 
     // 套用 3D 旋轉與聲符參數
     textEl.dataset.rotateX = data.rotateX || 0;

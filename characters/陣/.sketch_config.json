@@ -1,0 +1,92 @@
+{
+  "charName": "陣",
+  "bgFilename": "etymology_base.png",
+  "evolution": "將戰車（車）與士兵依據險要地形（阜）有序地排開，形成具備攻守功能的軍隊行列。",
+  "componentExplanations": [
+    {
+      "components": [
+        "阜"
+      ],
+      "label": "地勢險要",
+      "explanation": "「阜」代表土山。在軍事中，利用高地或防禦土丘是布陣的基礎。",
+      "image": "etymology_hill_ink.png",
+      "left": "80px",
+      "top": "350px",
+      "width": "200px",
+      "height": "650px"
+    },
+    {
+      "components": [
+        "車"
+      ],
+      "label": "戰車軍隊",
+      "explanation": "「車」是古代戰力的核心。排列有序的兵車形成了「陣」。",
+      "image": "etymology_chariot_ink.png",
+      "left": "300px",
+      "top": "300px",
+      "width": "420px",
+      "height": "800px"
+    }
+  ],
+  "deconstructionPlan": {
+    "columns": [
+      {
+        "parts": [
+          "阜"
+        ]
+      },
+      {
+        "parts": [
+          "車"
+        ]
+      }
+    ]
+  },
+  "labelMap": {
+    "阜": "Hill",
+    "車": "Chariot"
+  },
+  "elements": [
+    {
+      "text": "陣",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "rgba(255, 255, 255, 0.15)",
+      "fontSize": "650px",
+      "left": "59.0px",
+      "top": "314.0px",
+      "rotateX": 0,
+      "rotateY": 0,
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "note": "全字參考底稿"
+    },
+    {
+      "text": "阝",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "580px",
+      "left": "100px",
+      "top": "380px",
+      "width": "180px",
+      "height": "1000px",
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_1_row_1",
+      "note": "阜部 (左側)"
+    },
+    {
+      "text": "車",
+      "fontFamily": "'MasaFont', cursive",
+      "color": "#ffffff",
+      "fontSize": "500px",
+      "left": "280px",
+      "top": "380px",
+      "width": "450px",
+      "height": "750px",
+      "rotateZ": 0,
+      "isPhonetic": false,
+      "deconstructionMethod": "plan_col_2_row_1",
+      "note": "車部 (右側)"
+    }
+  ]
+}

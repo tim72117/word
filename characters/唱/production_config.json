@@ -1,0 +1,31 @@
+{
+  "charName": "唱",
+  "bgFilename": "_raw_base.png",
+  "evolution": "口（嘴巴）與昌（宏大、響亮）的結合。形容張開嘴巴發出像太陽一樣宏亮且廣傳的聲音。",
+  "componentExplanations": [
+    {
+      "components": [
+        "口"
+      ],
+      "label": "發聲器官",
+      "explanation": "想要大聲唱歌，最基本的就是要張開嘴巴。",
+      "image": null,
+      "left": "128px",
+      "top": "560px",
+      "width": "189px",
+      "height": "118px"
+    },
+    {
+      "components": [
+        "昌"
+      ],
+      "label": "宏亮開朗",
+      "explanation": "「昌」代表光亮與宏大，形容歌聲像陽光一樣響亮傳得遠。",
+      "image": "etymology_昌.png",
+      "left": "318px",
+      "top": "422px",
+      "width": "323px",
+      "height": "496px"
+    }
+  ]
+}

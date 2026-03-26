@@ -6,43 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sketch Tool - Outline Master</title>
     <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="effects.css">
     <style>
-        @font-face {
-            font-family: 'MasaFont';
-            font-weight: 200;
-            src: url('fonts/MasaFont-ExtraLight.ttf') format('truetype');
-        }
 
-        @font-face {
-            font-family: 'MasaFont';
-            font-weight: 300;
-            src: url('fonts/MasaFont-Light.ttf') format('truetype');
-        }
-
-        @font-face {
-            font-family: 'MasaFont';
-            font-weight: 400;
-            src: url('fonts/MasaFont-Regular.ttf') format('truetype');
-        }
-
-        @font-face {
-            font-family: 'MasaFont';
-            font-weight: 500;
-            src: url('fonts/MasaFont-Medium.ttf') format('truetype');
-        }
-
-        @font-face {
-            font-family: 'MasaFont';
-            font-weight: 700;
-            src: url('fonts/MasaFont-Bold.ttf') format('truetype');
-        }
-
-        @font-face {
-            font-family: 'Bakudai';
-            src: url('fonts/Bakudai-Regular.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
 
         @font-face {
             font-family: 'TW-Kai';
@@ -57,94 +23,131 @@
 <body>
     <div class="studio-container">
         <header>
-            <h1>Sketch Tool</h1>
-            <div class="header-actions">
+            <div class="header-group left">
+                <h1>Sketch Tool</h1>
                 <a href="app_demo/index.html" class="preview-btn" target="_blank">預覽遊戲卡牌</a>
                 <input type="file" id="imageLoader" accept="image/*" style="display: none;">
-                <button id="loadBtn">載入圖檔</button>
+            </div>
+
+            <div class="header-group center">
                 <button id="loadWorkspaceBtn">切換工作區</button>
                 <div class="tool-group">
-                    <button id="toggleSketchBtn" class="layer-btn">草圖</button>
-                    <button id="toggleCalligraphyBtn" class="layer-btn">書法</button>
-                    <button id="toggleBgBtn" class="layer-btn">底圖</button>
-                    <button id="toggleRegionsBtn" class="active">顯示結構範圍</button>
+                    <button id="toggleBgBtn" class="layer-btn active">底圖</button>
+                    <button id="toggleSketchBtn" class="layer-btn">手繪圖</button>
+                    <button id="toggleComponentsBtn" class="layer-btn">部件</button>
+                    <button id="toggleRegionsBtn" class="layer-btn active">紅框</button>
+                    <button id="togglePreviewBtn" class="layer-btn primary">預覽 (Preview)</button>
                 </div>
+                <!-- 預覽步進器已移動至右側面板 -->
+            </div>
+
+            <div class="header-group right">
                 <input type="text" id="charNameInput" placeholder="字名 (如: 聽)" style="display: none;">
-                <button id="saveInkBtn">儲存透明書法</button>
-                <button id="saveWorkspaceBtn" class="primary">儲存工作區</button>
-                <button id="saveToFolderBtn" class="primary">存入字資料夾</button>
-                <button id="saveBtn">儲存單張</button>
-                <button id="saveAndClearBtn" class="primary">儲存並繼續繪製</button>
             </div>
         </header>
 
-        <div class="canvas-wrapper">
-            <div id="referenceLayer" class="reference-layer"></div>
-            <canvas id="bgCanvas"></canvas>
-            <canvas id="sketchCanvas"></canvas>
-            <canvas id="calligraphyCanvas"></canvas>
-            <canvas id="regionCanvas"></canvas>
-            <div id="textOverlayContainer"></div>
-        </div>
+        <main class="studio-main">
+            <div id="workspaceCanvas">
+                <!-- 實際畫布層 (Sheet Area)，通常小於並居中於工作區 -->
+                <div class="canvas-layers">
+                    <canvas id="bgCanvas"></canvas>
+                    <canvas id="sketchCanvas"></canvas>
+                    <canvas id="regionCanvas"></canvas>
+                    <div id="textOverlayContainer"></div>
+                </div>
+            </div>
 
-        <div class="toolbar">
-            <div class="tool-group">
-                <label>圖層切換</label>
-                <button id="layerLayoutBtn" class="layer-btn active" data-layer="layout">佈局 (Layout)</button>
-                <button id="layerCalligraphyBtn" class="layer-btn" data-layer="calligraphy">書法 (Ink)</button>
-            </div>
-            <div class="tool-group calli-text-group" style="display: none;">
-                <label>書法字輸入</label>
-                <input type="text" id="calligraphyInput" placeholder="輸入字">
-                <select id="fontSelect" style="width: 120px;">
-                    <option value="'MasaFont', cursive" selected>正風毛筆 (Masa)</option>
-                    <option value="'Bakudai', cursive">莫大毛筆 (Bakudai)</option>
-                    <option value="'TW-Kai', serif">全字庫楷體 (TW-Kai)</option>
-                </select>
+            <aside class="right-panel">
+                <!-- 草圖工具組 -->
+                <div class="panel-section" id="brushControls">
+                    <h3>手繪工具 (Hand-drawn)</h3>
+                    <div class="control-group">
+                        <label>筆刷大小</label>
+                        <input type="range" id="brushSize" min="1" max="50" value="3">
+                    </div>
+                    <div class="control-group">
+                        <label>筆刷顏色</label>
+                        <div class="color-grid" id="colorControls">
+                            <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
+                            <div class="color-option" data-color="#888888" style="background: #888888;"></div>
+                            <div class="color-option" data-color="#ff4444" style="background: #ff4444;"></div>
+                            <div class="color-option" data-color="#000000" style="background: #000000; border: 1px solid #444;"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <button id="undoBtn" class="secondary w-full">上一步 (Undo)</button>
+                        <button id="clearBtn" class="danger w-full mt-2">清除畫布</button>
+                    </div>
+                </div>
 
-                <select id="fontWeightSelect" style="width: 80px;">
-                    <option value="200">極細 200</option>
-                    <option value="300">細體 300</option>
-                    <option value="400" selected>標準 400</option>
-                    <option value="500">中等 500</option>
-                    <option value="700">粗體 700</option>
-                </select>
-                <button id="addTextBtn" class="primary">置入畫布</button>
-            </div>
-            <div class="tool-group rotate-controls" style="display: none;">
-                <label>3D 旋轉與屬性</label>
-                <div
-                    style="display: flex; align-items: center; gap: 5px; color: white; font-size: 0.8rem; margin-bottom: 10px; width: 100%;">
-                    <input type="checkbox" id="isPhonetic" style="width: 15px; height: 15px;">
-                    <label for="isPhonetic">作為聲符 (Phonetic)</label>
+                <!-- 部件工具組 -->
+                <div class="panel-section" id="componentControls">
+                    <h3>部件屬性 (Component)</h3>
+                    
+                    <!-- 顯示模式 (一律顯示) -->
+                        <div class="control-group">
+                            <label>顯示模式 (Display Mode)</label>
+                            <div class="tool-group" id="displayModeGroup">
+                                <button id="showStructBtn" class="layer-btn">結構圖 (Struct)</button>
+                                <button id="showInkBtn" class="layer-btn active">渲染圖 (Render)</button>
+                            </div>
+                        </div>
+
+                    <div class="rotate-controls" style="display: none;" id="rotationPanel">
+                        <div class="control-group">
+                            <label>X 軸旋轉: <span id="valX">0</span>°</label>
+                            <input type="range" id="rotateX" min="-180" max="180" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Y 軸旋轉: <span id="valY">0</span>°</label>
+                            <input type="range" id="rotateY" min="-180" max="180" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Z 軸旋轉: <span id="valZ">0</span>°</label>
+                            <input type="range" id="rotateZ" min="-180" max="180" value="0">
+                        </div>
+                        <div class="control-group mt-2">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="isPhonetic"> 標記為聲符
+                            </label>
+                        </div>
+                        <button id="resetRotationsBtn" class="secondary w-full mt-2">重設為平面</button>
+                    </div>
+                    <p id="noSelectionMsg" class="hint">請在畫面上選取一個部件來調整 3D 旋轉</p>
                 </div>
-                <div class="control-item">
-                    <span>X: <span id="valX">0</span>°</span>
-                    <input type="range" id="rotateX" min="-180" max="180" value="0">
+
+                <!-- 底圖工具組 -->
+                <div class="panel-section" id="bgControls">
+                    <h3>底圖工具 (Background)</h3>
+                    <div class="control-group">
+                        <label>底圖透明度</label>
+                        <input type="range" id="bgOpacityInput" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group mt-2">
+                        <label class="file-label">
+                            載入自定義底圖
+                            <input type="file" id="imageLoader" accept="image/*">
+                        </label>
+                    </div>
                 </div>
-                <div class="control-item">
-                    <span>Y: <span id="valY">0</span>°</span>
-                    <input type="range" id="rotateY" min="-180" max="180" value="0">
+                
+                <!-- 預覽控制組 (預設隱藏) -->
+                <div class="panel-section" id="previewControls" style="display: none;">
+                    <h3>預覽控制 (Preview Mode)</h3>
+                    <div class="tool-group flex-col items-stretch gap-3">
+                        <div class="flex justify-between items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span id="stepIndicator" style="font-weight: 500;">Step 1 / 1</span>
+                            <span id="partLabel" style="color: var(--accent-color); font-size: 0.85rem;"></span>
+                        </div>
+                        <div class="flex gap-2" style="display: flex; gap: 8px;">
+                            <button id="prevStepBtn" class="secondary flex-1" style="flex: 1;">上一步</button>
+                            <button id="nextStepBtn" class="primary flex-1" style="flex: 1;">下一步</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="control-item">
-                    <span>Z: <span id="valZ">0</span>°</span>
-                    <input type="range" id="rotateZ" min="-180" max="180" value="0">
-                </div>
-                <button id="resetRotationsBtn" style="margin-top: 10px; width: 100%; background: #ef4444; border: none; color: white; padding: 5px; cursor: pointer; border-radius: 4px;">重設所有旋轉 (Reset All)</button>
-            </div>
-            <div class="tool-group">
-                <label>筆刷大小</label>
-                <input type="range" id="brushSize" min="1" max="50" value="3">
-            </div>
-            <div class="tool-group">
-                <label>顏色</label>
-                <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
-                <div class="color-option" data-color="#888888" style="background: #888888;"></div>
-                <div class="color-option" data-color="#ff4444" style="background: #ff4444;"></div>
-                <div class="color-option" data-color="#000000" style="background: #000000; border: 1px solid #444;">
-                </div>
-            </div>
-        </div>
+
+            </aside>
+        </main>
     </div>
     <div id="toastContainer"></div>
 
@@ -161,7 +164,12 @@
         </div>
     </div>
 
-    <script src="main.js?v=12"></script>
+    <script src="main.js?v=14"></script>
+    <script src="sketch_layer.js?v=1"></script>
+    <script src="component_layer.js?v=1"></script>
+    <script src="region_layer.js?v=3"></script>
+    <script src="preview_mode.js"></script>
+    <script src="cli_control.js"></script>
 </body>
 
 </html>

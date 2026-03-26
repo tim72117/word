@@ -1,5 +1,7 @@
 {
   "charName": "陣",
+  "width": 768,
+  "height": 1344,
   "bgFilename": "_raw_base.png",
   "reference": {
     "fontSize": 650,
@@ -10,6 +12,8 @@
   "elements": [
     {
       "text": "阜",
+      "image": null,
+      "image_struct": null,
       "fontSize": 399,
       "left": 118,
       "top": 526,
@@ -19,6 +23,8 @@
     },
     {
       "text": "車",
+      "image": "etymology_chariot_ink.png",
+      "image_struct": "etymology_chariot_struct.png",
       "fontSize": 652,
       "left": 287,
       "top": 374,

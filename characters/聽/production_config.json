@@ -1,0 +1,46 @@
+{
+  "charName": "聽",
+  "bgFilename": "_raw_base.png",
+  "evolution": "由耳朵、正直注視的眼睛與心靈組合而成。表示聽不只是耳朵的事，更要投入目光與心思，達到全神貫注的境界。",
+  "componentExplanations": [
+    {
+      "components": [
+        "耳"
+      ],
+      "label": "耳朵",
+      "explanation": "聽東西的時候，耳朵是最重要的法寶。",
+      "image": "etymology_ear_ink.png",
+      "left": "0px",
+      "top": "444px",
+      "width": "293px",
+      "height": "586px"
+    },
+    {
+      "components": [
+        "十",
+        "目",
+        "一"
+      ],
+      "label": "正直注視",
+      "explanation": "要把眼睛正對著對方，表示你正在認真地看、專心地聽。",
+      "image": "etymology_eye_ink.png",
+      "left": "294px",
+      "top": "310px",
+      "width": "438px",
+      "height": "477px"
+    },
+    {
+      "components": [
+        "一",
+        "心"
+      ],
+      "label": "一心一意",
+      "explanation": "不只是聽聲音，整個人都要靜下心來，專注在對方身上。",
+      "image": null,
+      "left": "319px",
+      "top": "767px",
+      "width": "356px",
+      "height": "161px"
+    }
+  ]
+}

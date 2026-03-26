@@ -285,24 +285,58 @@ body {
     transform-style: preserve-3d;
 }
 
-.etymology-image {
-    position: absolute;
-    z-index: 80;
-    pointer-events: none;
-    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
-    object-fit: contain;
+/* ==========================================
+   國風動效系統 (與 Sketch Tool 同步)
+   ========================================== */
+
+@keyframes guofengAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(12px);
+        filter: blur(10px) brightness(1.8);
+    }
+    40% {
+        opacity: 0.9;
+        transform: scale(1.02) translateY(-2px);
+        filter: blur(2px) brightness(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0) brightness(1);
+    }
+}
+
+.etymology-image.effect-appear {
+    animation: guofengAppear 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: center center;
+    will-change: transform, opacity, filter;
+}
+
+@keyframes regionFade {
+    0% {
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+    100% {
+        opacity: 1;
+        background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0) 95%);
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.5); 
+        visibility: visible;
+    }
 }
 
 .component-highlight {
     position: absolute;
-    background: rgba(255, 255, 255, 0.7);
-    filter: blur(15px);
-    border-radius: 20%;
+    border-radius: 50%;
     z-index: 70;
     pointer-events: none;
     opacity: 0;
-    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.component-highlight.showing {
+    display: block;
+    animation: regionFade 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 
@@ -471,7 +505,7 @@ body {
 .drawn-card.in-explanation .brush-layer,
 .drawn-card.in-explanation .char-element {
     opacity: 0;
-    filter: grayscale(1) blur(1px);
+    filter: grayscale(0.8) blur(4px); /* 增加模糊度，凸顯焦點 */
     pointer-events: none;
 }
 

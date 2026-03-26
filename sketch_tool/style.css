@@ -1,32 +1,4 @@
-@font-face {
-    font-family: 'MasaFont';
-    src: url('fonts/MasaFont-ExtraLight.ttf') format('truetype');
-    font-weight: 200;
-}
 
-@font-face {
-    font-family: 'MasaFont';
-    src: url('fonts/MasaFont-Light.ttf') format('truetype');
-    font-weight: 300;
-}
-
-@font-face {
-    font-family: 'MasaFont';
-    src: url('fonts/MasaFont-Regular.ttf') format('truetype');
-    font-weight: 400;
-}
-
-@font-face {
-    font-family: 'MasaFont';
-    src: url('fonts/MasaFont-Medium.ttf') format('truetype');
-    font-weight: 500;
-}
-
-@font-face {
-    font-family: 'MasaFont';
-    src: url('fonts/MasaFont-Bold.ttf') format('truetype');
-    font-weight: 700;
-}
 
 * {
     box-sizing: border-box;
@@ -60,24 +32,89 @@ html, body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: space-between;
-    padding: 0; /* 移除外圍邊距，達成真正的滿版 */
-    box-sizing: border-box;
-    gap: 0;
+    overflow: hidden;
 }
 
+.studio-main {
+    flex: 1;
+    display: flex;
+    padding: 30px;
+    gap: 30px;
+    overflow: hidden;
+    background-color: #0f1115; /* 工作區本體背景 */
+    align-items: flex-start;
+}
+
+#workspaceCanvas {
+    flex: 1;
+    height: 100%;
+    margin: 0;
+    overflow: auto; /* 支援大畫布捲動 */
+    background-color: #1a1c22;
+    background-image: 
+        linear-gradient(45deg, #121418 25%, transparent 25%), 
+        linear-gradient(-45deg, #121418 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #121418 75%), 
+        linear-gradient(-45deg, transparent 75%, #121418 75%);
+    background-size: 32px 32px;
+    background-position: 0 0, 0 16px, 16px 16px, 16px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 讓紙張式畫布在工作區居中，呈現「小於」的感覺 */
+    padding: 100px; /* 四周留白，確保工作區大於畫布 */
+    box-sizing: border-box;
+    position: relative;
+}
+
+.canvas-layers {
+    position: relative;
+    background-color: var(--canvas-bg);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0,0,0,0.5);
+    cursor: crosshair;
+    overflow: hidden;
+    line-height: 0;
+    flex: none; /* 禁止被 Flexbox 壓縮 */
+    box-sizing: content-box; /* 確保內層畫布解析度與 CSS 設定完全 1:1，不包含邊框 */
+}
+
+.canvas-layers canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
 header {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: var(--panel-bg);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
 }
+
+.header-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-group.center {
+    flex: 1;
+    justify-content: center;
+    gap: 40px;
+}
+
+.header-group.right {
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
 
 h1 {
     font-size: 1.2rem;
@@ -92,21 +129,15 @@ h1 {
 .canvas-wrapper {
     position: relative;
     background-color: var(--canvas-bg);
-    border-radius: 12px;
-    border: 3px solid #2d2f36;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 30px 60px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0,0,0,0.5);
     cursor: crosshair;
     overflow: hidden;
     line-height: 0;
-    transition: border-color 0.3s ease;
-    /* 尺寸優化：作為彈性元素，自動填滿剩餘空間並維持比例 */
-    flex: 1;
-    width: auto;
-    margin: 0 auto;
-    aspect-ratio: 768 / 1344;
-    max-width: 100%;
-    max-height: 100%;
+    /* 作為彈性元素，靠左上角放置 */
+    flex: 0 0 auto;
+    width: 600px; /* 固定預設顯示寬度，高度按比例 */
+    aspect-ratio: auto; /* 由 JS 動態設定或預設繼承 */
     box-sizing: border-box;
 }
 
@@ -126,12 +157,14 @@ canvas {
 #bgCanvas {
     z-index: 1;
     background: transparent;
+    opacity: 0.5;
 }
 
 #sketchCanvas {
     z-index: 2;
     /* 繪圖層在中間 */
     background: transparent;
+    display: none;
 }
 
 #calligraphyCanvas {
@@ -143,11 +176,117 @@ canvas {
 }
 
 #regionCanvas {
-    /* [FIXED] 確保紅框在所有底圖與部件文字之上，以便對位參考 */
-    z-index: 10;
+    /* [FIXED] 確保紅框在所有底圖與部件組件之上，作為最頂層的對位參考 */
+    z-index: 100;
     background: transparent;
     pointer-events: none;
 }
+
+/* --- 右側面板 (Right Panel) --- */
+.right-panel {
+    width: 320px;
+    height: 100%;
+    margin-left: auto; /* 強制將面板推向工作區最右側 */
+    background: var(--panel-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    backdrop-filter: blur(20px);
+}
+
+.panel-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-section:last-child {
+    border-bottom: none;
+}
+
+.panel-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+
+.danger {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.danger:hover {
+    background: #dc2626;
+}
+
+.hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-style: italic;
+    text-align: center;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #334155;
+    outline: none;
+}
+
+.file-label {
+    display: block;
+    background: #334155;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.file-label:hover {
+    background: #475569;
+}
+
+#imageLoader {
+    display: none;
+}
+
+
 
 /* Layer specific cursor */
 .calligraphy-mode #calligraphyCanvas {
@@ -169,23 +308,7 @@ canvas {
     color: white;
 }
 
-.reference-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    opacity: 0.3;
-    pointer-events: none;
-    filter: brightness(0.7) contrast(1.2);
-}
 
-.reference-layer img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
 
 .toolbar {
     display: flex;
@@ -305,90 +428,22 @@ button.primary:hover {
     border-color: var(--accent-color);
 }
 
-.drafts-gallery {
-    width: 100%;
-    max-width: 800px;
-    min-height: 100px;
-    background: var(--panel-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 10px 15px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
 
-.drafts-gallery h3 {
-    font-size: 0.8rem;
-    margin: 0 0 10px 0;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.gallery-items {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 5px;
-}
-
-.gallery-items::-webkit-scrollbar {
-    height: 4px;
-}
-
-.gallery-items::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-
-.gallery-item {
-    flex: 0 0 80px;
-    aspect-ratio: 9/16;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid var(--border-color);
-    transition: transform 0.2s;
-}
-
-.gallery-item:hover {
-    transform: scale(1.05);
-}
-
-.gallery-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.gallery-item span {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    font-size: 0.6rem;
-    padding: 2px;
-    text-align: center;
-}
 
 /* 互動文字層樣式 */
 #textOverlayContainer {
     position: absolute;
     top: 0;
     left: 0;
-    width: 768px;
-    height: 1344px;
+    width: 100%;
+    height: 100%;
     transform-origin: top left;
     pointer-events: none;
     z-index: 10;
     overflow: hidden;
     perspective: 1500px;
     transform-style: preserve-3d;
+    display: none;
 }
 
 .text-element {
@@ -423,6 +478,44 @@ button.primary:hover {
     pointer-events: none;
 }
 
+/* 當部件具有圖像時，隱藏文字 */
+.text-element.image-element span {
+    display: none;
+}
+
+/* 部件內建紅框範圍 (DOM 模式) */
+.region-box {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed #ff4444; /* 代碼環境下顯示紅虛框 */
+    background: transparent; /* 切換為透明，改由動畫中的漸增光暈控制 */
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+    display: none;
+}
+
+/* 預覽模式下，我們只需要淡化效果，不需要紅虛框 */
+.preview-mode .region-box {
+    border: none !important;
+}
+
+/* 預覽模式下，若無圖檔則隱藏文字，僅保留聚光效果 */
+.preview-mode .text-element:not(.image-element) span {
+    display: none;
+}
+
+/* 預覽模式下，強制隱藏編輯用控制項與容器邊緣，消除方框感 */
+.preview-mode .text-element {
+    border: none !important;
+    background: transparent !important;
+}
+
+.preview-mode .resize-handle,
+.preview-mode .delete-btn {
+    display: none !important;
+}
+
 .text-element:hover,
 .text-element.active {
     border: 2px dashed rgba(99, 102, 241, 0.8);
@@ -438,12 +531,6 @@ button.primary:hover {
 .hide-component-text .text-element:not(.full-char) span {
     opacity: 0;
     transition: opacity 0.2s;
-}
-
-.text-element.full-char {
-    border: none;
-    background: none;
-    pointer-events: none; /* 全字底稿不接收事件 */
 }
 
 /* 控制元件樣式 */
@@ -490,11 +577,11 @@ button.primary:hover {
 /* Toast 通知系統 */
 #toastContainer {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 25px;
+    right: 25px;
     z-index: 10000;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 10px;
     pointer-events: none;
 }

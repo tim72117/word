@@ -1,0 +1,74 @@
+/* ==========================================
+   國風動效系統 (Guofeng Effects System)
+   用於部件出現、切換與強調時的視覺特效
+   ========================================== */
+
+/* 1. 部件登場特效 (Component Appearance) */
+.effect-appear {
+    animation: guofengAppear 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: center center;
+    will-change: transform, opacity, filter;
+}
+
+@keyframes guofengAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(12px);
+        filter: blur(10px) brightness(1.8);
+    }
+    40% {
+        opacity: 0.9;
+        transform: scale(1.02) translateY(-2px);
+        filter: blur(2px) brightness(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0) brightness(1);
+    }
+}
+
+/* 2. 部件強調特效 (Highlight/Focus) */
+.effect-focus {
+    animation: guofengFocus 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes guofengFocus {
+    from {
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+    }
+    to {
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+    }
+}
+
+/* 3. 水墨渲染過渡 (Ink Bleed Transition) */
+.effect-ink-swap {
+    transition: filter 0.5s ease, opacity 0.5s ease;
+}
+
+/* 4. 預覽模式下的組件容器與紅框聯動 */
+.preview-mode .text-element {
+    transition: transform 0.4s ease-out;
+}
+
+@keyframes regionFade {
+    0% {
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+    100% {
+        opacity: 1;
+        /* 改為精確貼合部件範圍的漸層，中心明亮並在邊界迅速收束 */
+        background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0) 95%);
+        /* 縮小擴散範疇，避免光暈過度溢出，使聚焦更具目的性 */
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.5); 
+        visibility: visible;
+    }
+}
+
+.text-element.showing .region-box {
+    display: block;
+    animation: regionFade 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+

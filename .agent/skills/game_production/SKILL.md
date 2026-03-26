@@ -61,40 +61,48 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
      - `[part]` 必須使用英文小寫（如：`ear`, `mouth`, `hand`）。
 
 ## 數據配置規範 (Data Configuration Standards)
-為了確保設計階段與生產階段的資料銜接順暢，同時維持開發環境的整潔，`.sketch_config.json` 必須遵循以下簡化規範：
+為了確保設計階段（Sketch Tool）與生產階段（Game Demo）的資料銜接順暢且職責清晰，特建立以下雙配置分離規範：
 
-### 1. 結構分離與去 redundancy
-- **全字參考分離**：全字底稿或佈局基準資訊必須獨立存放在 `reference` 欄位中，嚴禁將其混入 `elements` 數組。
-- **單位精簡**：所有長度、座標與字型大小（`left`, `top`, `width`, `height`, `fontSize`）必須使用**純數值 (Number)**，禁止帶有 `px` 單位字串。
-- **移除冗餘屬性**：
-  - 若 `rotateX`, `rotateY`, `rotateZ` 為 `0` 或 `isPhonetic` 為 `false` 時，應省略不寫。
-  - 若 `color` 為純白 (`#ffffff`) 或 `fontFamily` 為專案預設值 (`'MasaFont', cursive`)，應省略不寫。
-
-### 2. 精簡範例 (Example Struct)
-```json
-{
-  "charName": "陣",
-  "bgFilename": "_raw_base.png",
-  "reference": {
-    "fontSize": 650,
-    "left": 59,
-    "top": 344,
-    "color": "rgba(255, 255, 255, 0.15)"
-  },
-  "elements": [
+### 1. `.sketch_config.json` (開發/工具規格)
+*   **用途**：專供 **Sketch Tool** 編輯器使用，儲存絕對座標與排版數據。
+*   **數據精簡化 (Numerical Standard)**：所有長度、座標與字型大小（`left`, `top`, `width`, `height`, `fontSize`）必須使用 **純數值 (Number)**，禁止帶有 `px` 單位字串。
+*   **去 Redundancy**：
+    *   若屬性為預設值（如 `rotate` 為 `0`, `isPhonetic` 為 `false`, `color` 為 `#ffffff`），應省略不寫。
+    *   **全字參考分離**：全字底稿或佈局基準資訊必須獨立存放在 `reference` 欄位中，嚴禁將其混入 `elements` 數組。
+*   **範例結構**：
+    ```json
     {
-      "text": "阜",
-      "label": "Hill",
-      "fontSize": 386,
-      "left": 118,
-      "top": 532,
-      "width": 168,
-      "height": 351,
-      "note": "欄 1"
+      "charName": "陣",
+      "bgFilename": "etymology_base.png",
+      "reference": { "fontSize": 650, "left": 59, "top": 344 },
+      "elements": [
+        { "text": "阜", "label": "Hill", "fontSize": 386, "left": 118, "top": 532 }
+      ]
     }
-  ]
-}
-```
+    ```
+
+### 2. `production_config.json` (生產/解說規格)
+*   **用途**：專供 **Game Demo** 展示與互動解說使用。
+*   **核心欄位**：
+    *   `evolution`：字源總體演變描述。
+    *   `componentExplanations`：陣列結構之分步解說，每一步包含 `label`, `explanation`, `image` (PNG 路徑) 及該步驟對位用的區域座標。
+*   **範例結構**：
+    ```json
+    {
+      "charName": "陣",
+      "bgFilename": "etymology_base.png",
+      "evolution": "將戰車依據地形有序地排開...",
+      "componentExplanations": [
+        {
+          "components": ["阜"],
+          "label": "Hill",
+          "explanation": "「阜」代表土山...",
+          "image": "etymology_hill_ink.png",
+          "left": "118px", "top": "532px", "width": "168px", "height": "351px"
+        }
+      ]
+    }
+    ```
 
 ## 規範維護原則 (Skill Maintenance Principles)
 - **詳盡性優先 (Exhaustive Descriptions)**：除非使用者明確要求簡化規則，否則在修改或重構 `SKILL.md` 時，**絕對禁止簡化或刪除原始的過程描述、技術細節與背景資訊**。這項原則優於任何簡潔性需求，旨在確保後續開發能完整繼承現有的技術資產。

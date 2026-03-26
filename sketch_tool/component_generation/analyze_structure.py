@@ -11,6 +11,15 @@ def analyze_character_structure(char_name, custom_parts=None):
     target_dir = os.path.abspath(os.path.join(project_root, "characters", char_name))
     os.makedirs(target_dir, exist_ok=True)
     
+    def parse_px(val):
+        if isinstance(val, (int, float)): return int(val)
+        if isinstance(val, str) and "px" in val:
+            return int(float(val.replace("px", "")))
+        try:
+            return int(float(val))
+        except:
+            return 0
+    
     # 核心設計配置 (設計階段使用)
     sketch_config_path = os.path.join(target_dir, ".sketch_config.json")
     
@@ -79,8 +88,8 @@ def analyze_character_structure(char_name, custom_parts=None):
     elements = []
     elements.append({
         "text": char_name, "fontFamily": "'MasaFont', cursive",
-        "color": "rgba(255, 255, 255, 0.15)", "fontSize": f"{actual_size}px",
-        "left": f"{tx:.1f}px", "top": f"{ty:.1f}px",
+        "color": "rgba(255, 255, 255, 0.15)", "fontSize": actual_size,
+        "left": tx, "top": ty,
         "rotateX": 0, "rotateY": 0, "rotateZ": 0,
         "isPhonetic": False, "note": "全字參考底稿"
     })
@@ -160,8 +169,8 @@ def analyze_character_structure(char_name, custom_parts=None):
                 
                 elements.append({
                     "text": p_txt, "fontFamily": "'MasaFont', cursive", "color": "#ffffff",
-                    "fontSize": f"{int(fw*1.1 if rz else fh*1.1)}px",
-                    "left": f"{fx}px", "top": f"{fy}px", "width": f"{fw}px", "height": f"{fh}px",
+                    "fontSize": int(fw*1.1 if rz else fh*1.1),
+                    "left": fx, "top": fy, "width": fw, "height": fh,
                     "rotateZ": rz, "isPhonetic": False, 
                     "deconstructionMethod": f"plan_col_{i+1}_row_{j+1}",
                     "note": f"計畫解構 (欄{i+1})"
@@ -173,8 +182,8 @@ def analyze_character_structure(char_name, custom_parts=None):
         for i, (bx, by, bw, bh) in enumerate(boxes):
             elements.append({
                 "text": f"Part_{i+1}", "fontFamily": "'MasaFont', cursive", "color": "#ffffff",
-                "fontSize": f"{int(bh*1.1)}px", "left": f"{bx}px", "top": f"{by}px",
-                "width": f"{bw}px", "height": f"{bh}px", "rotateZ": 0, "isPhonetic": false, "note": "自動偵測"
+                "fontSize": int(bh*1.1), "left": bx, "top": by,
+                "width": bw, "height": bh, "rotateZ": 0, "isPhonetic": False, "note": "自動偵測"
             })
 
     # --- 階段四：預覽圖生成 ---
@@ -185,10 +194,10 @@ def analyze_character_structure(char_name, custom_parts=None):
     for i, el in enumerate(elements):
         if el.get("note") == "全字參考底稿": continue
         
-        ex = int(float(el["left"].replace("px","")))
-        ey = int(float(el["top"].replace("px","")))
-        ew = int(el["width"].replace("px",""))
-        eh = int(el["height"].replace("px",""))
+        ex = parse_px(el["left"])
+        ey = parse_px(el["top"])
+        ew = parse_px(el["width"])
+        eh = parse_px(el["height"])
         color = palette[(i-1)%len(palette)]
         
         cv2.rectangle(preview_img, (ex, ey), (ex + ew, ey + eh), color, 4)
@@ -208,10 +217,7 @@ def analyze_character_structure(char_name, custom_parts=None):
     except Exception as e:
         print(f"❌ 無法生成預覽圖: {e}")
 
-    # --- 解析預覽圖座標 (輔助) ---
-    def parse_px(val):
-        if isinstance(val, (int, float)): return int(val)
-        return int(float(val.replace("px","")))
+
 
     # --- 最終存檔 (簡化格式) ---
     final_elements = []

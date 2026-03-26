@@ -8,18 +8,30 @@ let isDrawing = false;
 let drawnCards = [];
 let focusedCard = null;
 
+let wordListPromise = null;
 let wordList = [];
 let currentIndex = -1;
 
-// 初始化時取得可用字清單
-async function initWordList() {
-    try {
-        const response = await fetch('prepared_words.json');
-        wordList = await response.json();
-    } catch (e) {
-        console.error("無法讀取 prepared_words.json", e);
-    }
+// 初始化時取得可用字清單 (封裝為 Promise 確保同步)
+function initWordList() {
+    if (wordListPromise) return wordListPromise;
+    
+    wordListPromise = fetch('prepared_words.json?t=' + Date.now())
+        .then(resp => resp.json())
+        .then(data => {
+            wordList = data;
+            console.log("📜 字元清單載入成功 (Promise):", wordList);
+            return wordList;
+        })
+        .catch(e => {
+            console.error("無法讀取 prepared_words.json", e);
+            wordListPromise = null;
+            return [];
+        });
+    return wordListPromise;
 }
+
+// 預先啟動載入
 initWordList();
 
 deck.addEventListener('click', () => {
@@ -29,7 +41,8 @@ deck.addEventListener('click', () => {
 
 resetBtn.addEventListener('click', () => {
     resetTest();
-    currentIndex = -1; // 重置索引
+    currentIndex = -1; // 強制重置索引，下一次抽卡將從 0 開始
+    console.log("🔄 重置測試：索引已設回 -1");
 });
 
 async function drawSingleCard() {
@@ -45,18 +58,30 @@ async function drawSingleCard() {
         return;
     }
 
-    // 首次抽選隨機起點
+    // 依照 prepared_words.json 的順序顯示，不再隨機
     if (currentIndex < 0) {
-        currentIndex = Math.floor(Math.random() * wordList.length);
+        currentIndex = 0;
     }
     const targetChar = wordList[currentIndex];
+    console.log(`🎴 抽卡開始: 索引 ${currentIndex}, 字元: ${targetChar}`);
 
-    // 取得該字設定
+    // 取得該字設定 (優先嘗試合併 production 與 sketch)
     let config = null;
+    let prodConfig = null;
+    let rawConfig = null;
+
+    try {
+        const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
+        if (prodResp.ok) prodConfig = await prodResp.json();
+    } catch (e) { }
+
     try {
         const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
-        config = await configResp.json();
-    } catch (e) { console.warn("找不到設定檔"); }
+        if (configResp.ok) rawConfig = await configResp.json();
+    } catch (e) { console.warn("找不到 .sketch_config.json"); }
+
+    // 合併策略：production 優先，sketch 次之
+    config = { ...(rawConfig || {}), ...(prodConfig || {}) };
 
     await drawOneCard(targetChar, config);
     await sleep(400); 
@@ -109,12 +134,23 @@ async function goToNextWord() {
     // 3. 隱藏舊說明
     scene.classList.remove('show-info');
 
-    // 4. 抽新卡
+    // 4. 抽新卡 (優先嘗試合併 production 與 sketch)
     let config = null;
+    let prodConfig = null;
+    let rawConfig = null;
+
+    try {
+        const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
+        if (prodResp.ok) prodConfig = await prodResp.json();
+    } catch (e) { }
+
     try {
         const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
-        config = await configResp.json();
-    } catch (e) { console.warn("找不到設定檔"); }
+        if (configResp.ok) rawConfig = await configResp.json();
+    } catch (e) { console.warn("找不到 .sketch_config.json"); }
+
+    // 合併策略：production 優先，sketch 次之
+    config = { ...(rawConfig || {}), ...(prodConfig || {}) };
 
     await drawOneCard(targetChar, config);
     await sleep(400); 
@@ -155,7 +191,7 @@ function drawOneCard(charName, config) {
                     width: ${step.width || '100%'};
                     height: ${step.height || 'auto'};
                     position: absolute;
-                    opacity: 1;
+                    opacity: 0;
                     pointer-events: none;
                     z-index: 100;
                     transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
@@ -164,7 +200,7 @@ function drawOneCard(charName, config) {
                 const filenameData = step.image ? `data-filename="${step.image}"` : '';
                 const stepIndexData = `data-step-index="${sIdx}"`;
 
-                return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
+                return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData} onerror="this.style.display='none'">`;
             }).join('');
         }
 
@@ -271,26 +307,33 @@ function drawOneCard(charName, config) {
                 const imgEls = card.querySelectorAll('.etymology-image');
                 const highlightBox = card.querySelector('.component-highlight');
 
-                // 更新高亮背景位置（即使沒有組件圖片，也顯示範圍提示）
+                // [MOD] 切換至與 Sketch Tool 一致的動效驅動邏輯
+                imgEls.forEach(el => {
+                    const stepIndex = parseInt(el.dataset.stepIndex);
+                    if (stepIndex === currentStep) {
+                        el.classList.remove('effect-appear');
+                        void el.offsetWidth; // 強制重繪觸發動畫
+                        el.classList.add('effect-appear');
+                        el.style.opacity = '1';
+                    } else {
+                        el.classList.remove('effect-appear');
+                        el.style.opacity = '0'; // 完全隱藏非當前步驟的部件
+                    }
+                });
+
                 if (step.left && step.top) {
                     highlightBox.style.left = step.left;
                     highlightBox.style.top = step.top;
                     highlightBox.style.width = step.width;
                     highlightBox.style.height = step.height;
-                    highlightBox.style.opacity = '1';
+                    
+                    highlightBox.classList.remove('showing');
+                    void highlightBox.offsetWidth;
+                    highlightBox.classList.add('showing');
                 } else {
-                    highlightBox.style.opacity = '0';
+                    highlightBox.classList.remove('showing');
                 }
 
-                // 精確匹配當前步驟的圖片
-                imgEls.forEach(el => {
-                    const stepIndex = parseInt(el.dataset.stepIndex);
-                    if (stepIndex === currentStep) {
-                        el.style.opacity = '1';
-                    } else {
-                        el.style.opacity = '0.3'; // 半透明保留位置感
-                    }
-                });
 
                 if ('speechSynthesis' in window) {
                     window.speechSynthesis.cancel();

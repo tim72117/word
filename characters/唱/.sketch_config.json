@@ -1,6 +1,73 @@
 {
   "charName": "唱",
+  "canvasSize": [
+    768,
+    1344
+  ],
   "bgFilename": "_raw_base.png",
+  "reference": {
+    "fontSize": 650,
+    "left": 59,
+    "top": 314,
+    "color": "rgba(255, 255, 255, 0.15)"
+  },
+  "settings": {
+    "gap": 6,
+    "xSearchRange": [
+      0.3,
+      0.65
+    ],
+    "rotationThreshold": 1.5,
+    "valleyWindow": 15,
+    "valleySpacing": 40,
+    "fontName": "TW-Kai-98_1.ttf",
+    "labelMap": {
+      "口": "Mouth",
+      "昌": "Chang"
+    },
+    "deconstructionPlan": {
+      "columns": [
+        {
+          "parts": [
+            "口"
+          ]
+        },
+        {
+          "parts": [
+            "昌"
+          ]
+        }
+      ]
+    }
+  },
+  "elements": [
+    {
+      "text": "口",
+      "prompt_sketch": "極簡主義幾何結構線稿。一個簡約、邊緣略帶古樸質感的正方形開口構造。線條洗練且極細。背景為純白色 (#FFFFFF)。絕對禁止出現任何標籤或文字。置中構圖。 (English Prompt: Minimalist geometric line art. A simple, square-shaped opening with slightly rounded ancient-style corners. Clean, ultra-thin black lines on a pure white background. Absolutely no symbols, text, or labels. Centered composition.)",
+      "prompt_final": "高品質國風藝術渲染圖，呈現「高階中國風」遊戲美學。基於結構線稿，使用硃砂紅與寫意水墨結合，勾勒出具有生命力與發聲動態感的開口意象。背景純白，氣氛活潑且展現歌唱的動態感。高品質遊戲資產。 (English Prompt: High-quality final render in Chinese Style Game Art Aesthetic. Based on the structural sketch where vibrant crimson combined with freehand ink strokes, depicting a vocal opening with dynamic energy. Background: Pure white. Atmosphere: vibrant and vocal. Premium game asset quality. No text.)",
+      "fontSize": 207,
+      "left": 128,
+      "top": 560,
+      "width": 189,
+      "height": 118,
+      "rotateZ": 90,
+      "note": "計畫解構 (欄1) - 跳過圖像製作"
+    },
+    {
+      "text": "昌",
+      "image": "etymology_bright_ink.png",
+      "image_struct": "etymology_bright_struct.png",
+      "prompt_sketch": "極簡主義幾何結構線稿。垂直堆疊構造：上部為一個正圓形的發光恆星（太陽），下部為一個簡約的「嘴」部構造。線條洗練、極細。背景為純白色 (#FFFFFF)。絕對禁止出現任何標籤。 (English Prompt: Minimalist structural sketch. Vertical composition: A perfectly round sun on top, and a simple \"Mouth\" (嘴) structure at the bottom. Clean, ultra-thin black lines on a pure white background. Minimalist geometric line art. Absolutely no text, symbols, or labels. Centered composition.)",
+      "prompt_final": "高品質「昌」部國風渲染，呈現「高階中國風」遊戲美學。基於結構線稿，上方的圓形天體散發出極其溫潤的暖金色晨曦光輝，下方的「嘴」部構造則展現厚實且優美的水墨滲透層次。背景純白，氣氛宏大且明亮。高品質遊戲資產。 (English Prompt: High-quality final render in Chinese Style Game Art Aesthetic. Based on the structural sketch where the top circular celestial body emits a warm golden morning glow, and the bottom \"Mouth\" (嘴) structure shows deep, elegant ink-wash flow. Background: Pure white. Atmosphere: radiant and expansive. Premium game asset quality. No text.)",
+      "fontSize": 545,
+      "left": 318,
+      "top": 422,
+      "width": 323,
+      "height": 496,
+      "rotateZ": 0,
+      "note": "計畫解構 (欄2)"
+    }
+  ],
   "componentExplanations": [
     {
       "components": [
@@ -26,76 +93,6 @@
       "top": "180px",
       "width": "430px",
       "height": "880px"
-    }
-  ],
-  "deconstructionPlan": {
-    "columns": [
-      {
-        "parts": [
-          "口"
-        ]
-      },
-      {
-        "parts": [
-          "昌"
-        ]
-      }
-    ]
-  },
-  "labelMap": {
-    "口": "Mouth",
-    "昌": "Chang"
-  },
-  "elements": [
-    {
-      "text": "唱",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "rgba(255, 255, 255, 0.15)",
-      "fontSize": "650px",
-      "left": "59.0px",
-      "top": "314.0px",
-      "rotateX": 0,
-      "rotateY": 0,
-      "rotateZ": 0,
-      "isPhonetic": false,
-      "note": "全字參考底稿"
-    },
-    {
-      "text": "口",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "207px",
-      "left": "128px",
-      "top": "560px",
-      "width": "189px",
-      "height": "118px",
-      "rotateZ": 90,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_1_row_1",
-      "note": "計畫解構 (欄1) - 跳過圖像製作"
-    },
-    {
-      "text": "昌",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "545px",
-      "left": "318px",
-      "top": "422px",
-      "width": "323px",
-      "height": "496px",
-      "rotateZ": 0,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_1",
-      "note": "計畫解構 (欄2)"
-    },
-    {
-      "text": "",
-      "image": "etymology_昌.png",
-      "left": "318px",
-      "top": "422px",
-      "width": "323px",
-      "height": "496px",
-      "note": "Auto-generated etymology for 昌"
     }
   ]
 }

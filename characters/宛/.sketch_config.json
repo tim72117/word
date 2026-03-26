@@ -1,0 +1,60 @@
+{
+  "charName": "宛",
+  "canvasSize": [
+    768,
+    1344
+  ],
+  "bgFilename": "_raw_base.png",
+  "reference": {
+    "fontSize": 650,
+    "left": 59,
+    "top": 329,
+    "width": 650,
+    "height": 505,
+    "color": "rgba(255, 255, 255, 0.15)"
+  },
+  "settings": {
+    "gap": 6,
+    "xSearchRange": [
+      0.3,
+      0.65
+    ],
+    "rotationThreshold": 1.5,
+    "valleyWindow": 15,
+    "valleySpacing": 40,
+    "fontName": "TW-Kai-98_1.ttf",
+    "labelMap": {}
+  },
+  "deconstructionPlan": {
+    "columns": [
+      {
+        "parts": [
+          "宀",
+          "夗"
+        ]
+      }
+    ]
+  },
+  "elements": [
+    {
+      "text": "宀",
+      "fontSize": 504,
+      "left": 145,
+      "top": 419,
+      "width": 459,
+      "height": 181,
+      "rotateZ": 90,
+      "note": "產自解構計畫 (欄1)"
+    },
+    {
+      "text": "夗",
+      "fontSize": 583,
+      "left": 120,
+      "top": 601,
+      "width": 530,
+      "height": 320,
+      "rotateZ": 90,
+      "note": "產自解構計畫 (欄1)"
+    }
+  ]
+}

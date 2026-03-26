@@ -8,134 +8,196 @@ let isDrawing = false;
 let drawnCards = [];
 let focusedCard = null;
 
-let preparedWords = [];
+let wordListPromise = null;
+let wordList = [];
+let currentIndex = -1;
 
-// 初始化時取得準備好的字
-async function initPreparedWords() {
-    try {
-        const response = await fetch('prepared_words.json');
-        preparedWords = await response.json();
-    } catch (e) {
-        console.warn("無法讀取 prepared_words.json，將使用預設卡牌", e);
-    }
+// 初始化時取得可用字清單 (封裝為 Promise 確保同步)
+function initWordList() {
+    if (wordListPromise) return wordListPromise;
+    
+    wordListPromise = fetch('prepared_words.json?t=' + Date.now())
+        .then(resp => resp.json())
+        .then(data => {
+            wordList = data;
+            console.log("📜 字元清單載入成功 (main.js):", wordList);
+            return wordList;
+        })
+        .catch(e => {
+            console.error("無法讀取 prepared_words.json", e);
+            wordListPromise = null;
+            return [];
+        });
+    return wordListPromise;
 }
-initPreparedWords();
+
+// 預先啟動載入
+initWordList();
 
 deck.addEventListener('click', () => {
     if (isDrawing || drawnCards.length > 0) return;
-    drawThreeCards();
+    drawSingleCard();
 });
 
-resetBtn.addEventListener('click', resetTest);
-
-focusOverlay.addEventListener('click', () => {
-    if (focusedCard) blurCard(focusedCard);
+resetBtn.addEventListener('click', () => {
+    resetTest();
+    currentIndex = -1; // 強制重置索引，下一次抽卡將從 0 開始
+    console.log("🔄 重置測試：索引已設回 -1");
 });
 
-async function drawThreeCards() {
+async function drawSingleCard() {
     isDrawing = true;
 
     // 隱藏提示
     document.querySelector('.deck-hint').style.opacity = '0';
 
-    for (let i = 0; i < 3; i++) {
-        await drawOneCard(i);
-        await sleep(200); // 抽取間隔
+    if (wordList.length === 0) await initWordList();
+    if (wordList.length === 0) {
+        console.warn("清單為空，無法抽卡");
+        isDrawing = false;
+        return;
     }
 
-    await sleep(400); // 等待抽取動畫完成
-    fanOutCards();
+    // 依照 prepared_words.json 的順序顯示，不再隨機
+    if (currentIndex < 0) {
+        currentIndex = 0;
+    }
+    const targetChar = wordList[currentIndex];
+    console.log(`🎴 抽卡開始: 索引 ${currentIndex}, 字元: ${targetChar}`);
+
+    // 取得該字設定 (僅使用 production_config)
+    let config = null;
+
+    try {
+        const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
+        if (prodResp.ok) config = await prodResp.json();
+    } catch (e) { 
+        console.warn("找不到 production_config.json", e);
+    }
+
+    await drawOneCard(targetChar, config);
+    await sleep(400); 
+    centerCard(targetChar, config);
     isDrawing = false;
 }
 
-function drawOneCard(index) {
-    return new Promise(async (resolve) => {
+// 手勢辨識
+let touchStartX = 0;
+let touchStartY = 0;
+
+scene.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+scene.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    // 向右划動 (右翻) 跳到下一個字
+    if (dx > 80 && Math.abs(dy) < 100) {
+        if (!isDrawing && drawnCards.length > 0) {
+            goToNextWord();
+        }
+    }
+}, { passive: true });
+
+async function goToNextWord() {
+    isDrawing = true;
+    
+    // 1. 將舊卡片翻走
+    if (drawnCards.length > 0) {
+        const oldCard = drawnCards[0];
+        oldCard.style.transition = 'all 0.6s cubic-bezier(0.45, 0, 0.55, 1)';
+        oldCard.style.transform = 'translateX(600px) translateY(-40px) translateZ(100px) rotateZ(30deg) rotateY(40deg) scale(0.1)';
+        oldCard.style.opacity = '0';
+        
+        setTimeout(() => oldCard.remove(), 600);
+        drawnCards = [];
+    }
+
+    // 2. 準備下一個字
+    if (wordList.length === 0) await initWordList();
+    currentIndex = (currentIndex + 1) % wordList.length;
+    const targetChar = wordList[currentIndex];
+
+    // 3. 隱藏舊說明
+    scene.classList.remove('show-info');
+
+    // 4. 抽新卡 (僅使用 production_config)
+    let config = null;
+
+    try {
+        const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
+        if (prodResp.ok) config = await prodResp.json();
+    } catch (e) {
+        console.warn("找不到 production_config.json", e);
+    }
+
+    await drawOneCard(targetChar, config);
+    await sleep(400); 
+    centerCard(targetChar, config);
+    isDrawing = false;
+}
+
+function drawOneCard(charName, config) {
+    return new Promise((resolve) => {
         const card = document.createElement('div');
         card.className = 'drawn-card';
+        card.dataset.char = charName;
 
-        // 初始位置在牌堆（遠處），配合 768px 基礎尺寸調小縮放
+        // 初始位置在牌堆（遠處），使用極小縮放配合 768px 物理尺寸
         card.style.transform = `rotateX(60deg) rotateZ(-10deg) translateZ(-50px) scale(0.13)`;
 
-        let cardContent = `
+        // 判斷底圖
+        const bgImg = config && config.bgFilename
+            ? `characters/${charName}/${config.bgFilename}`
+            : `characters/${charName}/${charName}_01.png`; // 備援
+
+        // 動態生成解說圖片
+        let elementsHtml = '';
+        const rootUrl = `characters/${charName}`;
+        if (config && config.componentExplanations && config.componentExplanations.length > 0) {
+            elementsHtml = config.componentExplanations.map((step, sIdx) => {
+                const imgSource = step.image ? `${rootUrl}/${step.image}` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                const style = `
+                    left: ${step.left || '0px'};
+                    top: ${step.top || '0px'};
+                    width: ${step.width || '100%'};
+                    height: ${step.height || 'auto'};
+                    position: absolute;
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 100;
+                    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+                `;
+                const className = 'etymology-image' + (step.image ? '' : ' no-image');
+                const filenameData = step.image ? `data-filename="${step.image}"` : '';
+                const stepIndexData = `data-step-index="${sIdx}"`;
+
+                return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData} onerror="this.style.display='none'">`;
+            }).join('');
+        }
+
+        card.innerHTML = `
             <div class="card-inner">
                 <div class="face face-front">
-                    <img src="card_face.png" alt="Card Face" loading="eager" class="bg-layer">
+                    <div class="stage-container">
+                        <img src="${bgImg}" class="bg-layer" alt="Background" onerror="this.src='card_face.png'">
+                        <div class="component-highlight"></div>
+                        <img src="${rootUrl}/ink.png" class="ink-layer" alt="Ink" onerror="this.style.display='none'">
+                        <img src="${rootUrl}/ink_phono.png" class="ink-layer phono-ink" onerror="this.style.display='none'">
+                        <img src="${rootUrl}/brush.png" class="brush-layer" alt="Brush" onerror="this.style.display='none'">
+                        ${elementsHtml}
+                    </div>
                 </div>
                 <div class="face face-back"></div>
             </div>
         `;
 
-        if (preparedWords.length > 0) {
-            const randomWord = preparedWords[Math.floor(Math.random() * preparedWords.length)];
-            const rootUrl = `characters/${randomWord}`;
-
-            let config = null;
-            // 嘗試取得該字的設定
-            try {
-                const configResp = await fetch(`${rootUrl}/.sketch_config.json`);
-                config = await configResp.json();
-
-                const bgImg = config.bgFilename ? `${rootUrl}/${config.bgFilename}` : 'card_face.png';
-
-                // 動態生成解說圖片（改從 componentExplanations 提取，與步驟 1:1 綁定）
-                let elementsHtml = '';
-                if (config.componentExplanations && config.componentExplanations.length > 0) {
-                    elementsHtml = config.componentExplanations.map((step, sIdx) => {
-                        const imgSource = step.image ? `${rootUrl}/${step.image}` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                        const style = `
-                            left: ${step.left || '0px'};
-                            top: ${step.top || '0px'};
-                            width: ${step.width || '100%'};
-                            height: ${step.height || 'auto'};
-                            position: absolute;
-                            opacity: 1;
-                            pointer-events: none;
-                            z-index: 100;
-                            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-                        `;
-                        const className = 'etymology-image' + (step.image ? '' : ' no-image');
-                        const filenameData = step.image ? `data-filename="${step.image}"` : '';
-                        const stepIndexData = `data-step-index="${sIdx}"`;
-
-                        return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
-                    }).join('');
-                }
-
-                cardContent = `
-                    <div class="card-inner">
-                        <div class="face face-front">
-                            <div class="stage-container">
-                                <img src="${bgImg}" alt="Card Face" loading="eager" class="bg-layer" onerror="this.src='card_face.png'">
-                                <div class="component-highlight"></div>
-                                <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer" onerror="this.style.display='none'">
-                                <img src="${rootUrl}/ink_phono.png" alt="Phonetic Ink" class="ink-layer phono-ink" onerror="this.style.display='none'">
-                                <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer" onerror="this.style.display='none'">
-                                ${elementsHtml}
-                            </div>
-                        </div>
-                        <div class="face face-back"></div>
-                    </div>
-                `;
-            } catch (e) {
-                console.warn(`載入 ${randomWord} 設定時出錯:`, e);
-                // 標配備援
-                cardContent = `
-                    <div class="card-inner">
-                        <div class="face face-front">
-                            <img src="card_face.png" alt="Card Face" loading="eager" class="bg-layer">
-                            <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer">
-                            <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer">
-                            ${elementsHtml}
-                        </div>
-                        <div class="face face-back"></div>
-                    </div>
-                `;
-            }
-        }
-
-        card.innerHTML = cardContent;
-
-        // 如果有聲符範圍，則加入動作按鈕
+        // 如果有聲符發音，加入對應介面 (需 config.phonoRange)
         if (config && config.phonoRange) {
             const r = config.phonoRange;
             const btn = document.createElement('button');
@@ -152,7 +214,6 @@ function drawOneCard(index) {
             btn.style.top = `${top}%`;
             btn.style.transform = 'translate(-50%, -50%) translateZ(5px)';
 
-            // 加入聲符發光提示
             const glow = document.createElement('div');
             glow.className = 'phono-glow';
             glow.style.left = `${r.x / 768 * 100}%`;
@@ -164,8 +225,8 @@ function drawOneCard(index) {
             btn.onclick = (e) => {
                 e.stopPropagation();
                 if ('speechSynthesis' in window) {
-                    const phonoText = config.elements.find(el => el.isPhonetic)?.text || "";
-                    const uttr = new SpeechSynthesisUtterance(phonoText || (typeof randomWord !== 'undefined' ? randomWord : ""));
+                    const phonoText = config.elements?.find(el => el.isPhonetic)?.text || "";
+                    const uttr = new SpeechSynthesisUtterance(phonoText || charName);
                     uttr.lang = 'zh-TW';
                     window.speechSynthesis.speak(uttr);
                 }
@@ -173,100 +234,84 @@ function drawOneCard(index) {
             card.querySelector('.face-front').appendChild(btn);
         }
 
-        // 如果有演變邏輯，則加入資訊面板
-        if (config && config.evolution) {
-            const info = document.createElement('div');
-            info.className = 'char-info-panel';
-            info.innerHTML = `
-                <div class="info-title">字源總結</div>
-                <div>${config.evolution}</div>
-                <div class="info-hint">點擊看解構</div>
-            `;
-            card.querySelector('.face-front').appendChild(info);
+        // 分步解說邏輯
+        let currentStep = -1;
+        const explanations = config?.componentExplanations || [];
+        const panelTitle = document.getElementById('cardInfoTitle');
+        const panelDesc = document.getElementById('cardInfoDesc');
 
-            // 分步解說面板
-            const stepInfo = document.createElement('div');
-            stepInfo.className = 'step-info-panel';
-            card.querySelector('.face-front').appendChild(stepInfo);
+        card.addEventListener('click', (e) => {
+            if (isDrawing) return;
+            e.stopPropagation();
 
-            let currentStep = -1; // -1: 初始, 0+: 解說步驟, last+1: 回到總結
-            const explanations = config.componentExplanations || [];
+            currentStep++;
+            if (currentStep >= explanations.length) {
+                // 回到總結
+                currentStep = -1;
+                card.classList.remove('in-explanation');
+                scene.classList.add('show-info');
+                
+                panelTitle.textContent = config?.charName || charName;
+                panelDesc.textContent = config?.evolution || "字源解釋結束。";
 
-            card.addEventListener('click', (e) => {
-                if (isDrawing) return;
-                e.stopPropagation();
-
-                currentStep++;
-                if (currentStep >= explanations.length) {
-                    // 完成解說，顯示總結
-                    currentStep = -1;
-                    card.classList.remove('in-explanation');
-                    card.classList.add('show-info');
-                    
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const uttr = new SpeechSynthesisUtterance(config.evolution);
-                        uttr.lang = 'zh-TW';
-                        window.speechSynthesis.speak(uttr);
-                    }
-                } else {
-                    // 執行具體的步驟解說
-                    card.classList.add('in-explanation');
-                    card.classList.remove('show-info');
-                    
-                    const step = explanations[currentStep];
-                    stepInfo.innerHTML = `
-                        <div class="info-title">${step.label}</div>
-                        <div>${step.explanation}</div>
-                        <div class="info-hint">(${currentStep + 1}/${explanations.length}) 點擊繼續</div>
-                    `;
-
-                    // 高亮對應部件
-                    const imgEls = card.querySelectorAll('.etymology-image');
-                    const highlightBox = card.querySelector('.component-highlight');
-
-                    // 更新高亮背景位置（即使沒有組件圖片，也顯示範圍提示）
-                    if (step.left && step.top) {
-                        highlightBox.style.left = step.left;
-                        highlightBox.style.top = step.top;
-                        highlightBox.style.width = step.width;
-                        highlightBox.style.height = step.height;
-                        highlightBox.style.opacity = '1';
-                    } else {
-                        highlightBox.style.opacity = '0';
-                    }
-
-                    // 精確匹配當前步驟的圖片
-                    imgEls.forEach(el => {
-                        const stepIndex = parseInt(el.dataset.stepIndex);
-                        if (stepIndex === card.currentStep) {
-                            el.style.opacity = '1';
-                        } else {
-                            el.style.opacity = '0.3'; // 半透明保留位置感
-                        }
-                    });
-
-
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const uttr = new SpeechSynthesisUtterance(step.explanation);
-                        uttr.lang = 'zh-TW';
-                        window.speechSynthesis.speak(uttr);
-                    }
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const uttr = new SpeechSynthesisUtterance(config?.evolution || "");
+                    uttr.lang = 'zh-TW';
+                    window.speechSynthesis.speak(uttr);
                 }
-            });
-        }
+            } else {
+                // 分步解說
+                card.classList.add('in-explanation');
+                scene.classList.add('show-info');
+                
+                const step = explanations[currentStep];
+                panelTitle.textContent = step.label;
+                panelDesc.textContent = step.explanation;
 
-        // 保持卡片可點擊（但不放大），如果需要其他點擊邏輯可在此添加
-        // 原本的 focusCard/blurCard 邏輯已移除
+                const imgEls = card.querySelectorAll('.etymology-image');
+                const highlightBox = card.querySelector('.component-highlight');
+
+                imgEls.forEach(el => {
+                    const stepIndex = parseInt(el.dataset.stepIndex);
+                    if (stepIndex === currentStep) {
+                        el.classList.remove('effect-appear');
+                        void el.offsetWidth;
+                        el.classList.add('effect-appear');
+                        el.style.opacity = '1';
+                    } else {
+                        el.classList.remove('effect-appear');
+                        el.style.opacity = '0';
+                    }
+                });
+
+                if (step.left && step.top) {
+                    highlightBox.style.left = step.left;
+                    highlightBox.style.top = step.top;
+                    highlightBox.style.width = step.width;
+                    highlightBox.style.height = step.height;
+                    
+                    highlightBox.classList.remove('showing');
+                    void highlightBox.offsetWidth;
+                    highlightBox.classList.add('showing');
+                } else {
+                    highlightBox.classList.remove('showing');
+                }
+
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const uttr = new SpeechSynthesisUtterance(step.explanation);
+                    uttr.lang = 'zh-TW';
+                    window.speechSynthesis.speak(uttr);
+                }
+            }
+        });
 
         hand.appendChild(card);
         drawnCards.push(card);
-
-        // 強制 reflow
         card.offsetHeight;
 
-        // 抽取效果：移動到中心上方
+        // 抽取效果
         card.style.opacity = '1';
         card.style.transform = `translateY(-150px) translateZ(100px) rotateX(0deg) scale(0.2)`;
 
@@ -274,37 +319,31 @@ function drawOneCard(index) {
     });
 }
 
-function focusCard(card) {
-    if (focusedCard && focusedCard !== card) blurCard(focusedCard);
+async function centerCard(charName, config) {
+    if (drawnCards.length > 0) {
+        const card = drawnCards[0];
+        card.style.transform = `translateX(0px) translateY(-40px) translateZ(300px) rotateZ(0deg) rotateX(0deg) scale(0.33)`;
 
-    focusedCard = card;
-    card.classList.add('focused');
-    scene.classList.add('has-focus');
-}
+        const title = config?.charName || charName;
+        const desc = config?.evolution || "尚無演變邏輯說明。";
 
-function blurCard(card) {
-    card.classList.remove('focused');
-    scene.classList.remove('has-focus');
-    focusedCard = null;
-}
+        document.getElementById('cardInfoTitle').textContent = title;
+        document.getElementById('cardInfoDesc').textContent = desc;
 
-function fanOutCards() {
-    const cardData = [
-        { x: -100, rotate: -15, y: 30 },
-        { x: 0, rotate: 0, y: 0 },
-        { x: 100, rotate: 15, y: 30 }
-    ];
-
-    drawnCards.forEach((card, i) => {
-        const data = cardData[i];
-        // 最終展開狀態：扇形，因基礎寬度 768px，需縮小至約 150px 的視覺大小
-        card.style.transform = `translateX(${data.x}px) translateY(${data.y}px) translateZ(150px) rotateZ(${data.rotate}deg) rotateX(0deg) scale(0.2)`;
-    });
+        setTimeout(() => {
+            if ('speechSynthesis' in window && config?.evolution) {
+                window.speechSynthesis.cancel();
+                const uttr = new SpeechSynthesisUtterance(`${charName}。點擊卡牌進入字源解析。`);
+                uttr.lang = 'zh-TW';
+                window.speechSynthesis.speak(uttr);
+            }
+        }, 600);
+    }
 }
 
 function resetTest() {
     if (isDrawing) return;
-
+    scene.classList.remove('show-info');
     drawnCards.forEach(card => card.remove());
     drawnCards = [];
     document.querySelector('.deck-hint').style.opacity = '1';

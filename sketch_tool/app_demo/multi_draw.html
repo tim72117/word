@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>字源解構展示 - Main Drawer</title>
+    <title>卡牌三抽展示 - Multi-Card Backup</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,18 +17,16 @@
         <div class="scene">
             <div class="ambient-vfx"></div>
             <div class="deck-container" id="deck">
-                <!-- 牌堆裝飾層 -->
                 <div class="card deck-base" style="transform: translateZ(5px);"></div>
                 <div class="card deck-base" style="transform: translateZ(10px);"></div>
                 <div class="card deck-base" style="transform: translateZ(15px);"></div>
                 <div class="card deck-base" style="transform: translateZ(20px);"></div>
                 <div class="card deck-base" style="transform: translateZ(25px);"></div>
-                <!-- 可點擊的牌堆頂部 -->
                 <div class="card main-deck" style="transform: translateZ(30px);">
                     <div class="card-back"></div>
                     <div class="card-glow"></div>
                 </div>
-                <div class="deck-hint">點擊牌堆抽取單張卡牌</div>
+                <div class="deck-hint">點擊牌堆抽取卡牌 (三抽)</div>
             </div>
 
             <div class="hand-container" id="hand">
@@ -36,24 +34,16 @@
             </div>
 
             <div id="focusOverlay" class="focus-overlay"></div>
-
-            <!-- 卡牌說明文字面板 (單抽模式必備) -->
-            <div id="cardInfoPanel" class="card-info-panel">
-                <h3 id="cardInfoTitle">字</h3>
-                <p id="cardInfoDesc">說明文字...</p>
-            </div>
         </div>
 
         <div class="controls">
             <button id="resetBtn">重置測試</button>
-            <a href="multi_draw.html"
-                style="margin-left: 10px; color: white; text-decoration: none; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 50px;">
-                切換至三抽展示
-            </a>
+            <a href="index.html"
+                style="margin-left: 10px; color: white; text-decoration: none; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 50px;">回單抽首頁</a>
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <script src="multi_draw.js"></script>
 </body>
 
 </html>

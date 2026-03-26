@@ -1,50 +1,73 @@
 {
   "charName": "陣",
-  "width": 768,
-  "height": 1344,
+  "canvasSize": [
+    768,
+    1344
+  ],
   "bgFilename": "_raw_base.png",
   "reference": {
     "fontSize": 650,
     "left": 59,
     "top": 344,
+    "width": 650,
+    "height": 596,
     "color": "rgba(255, 255, 255, 0.15)"
+  },
+  "settings": {
+    "gap": 6,
+    "xSearchRange": [
+      0.3,
+      0.65
+    ],
+    "rotationThreshold": 1.5,
+    "valleyWindow": 15,
+    "valleySpacing": 40,
+    "fontName": "TW-Kai-98_1.ttf",
+    "labelMap": {
+      "阜": "left",
+      "車": "right"
+    },
+    "deconstructionPlan": {
+      "columns": [
+        {
+          "parts": [
+            "阜"
+          ]
+        },
+        {
+          "parts": [
+            "車"
+          ]
+        }
+      ]
+    }
   },
   "elements": [
     {
       "text": "阜",
-      "image": null,
-      "image_struct": null,
+      "prompt_sketch": "極簡主義幾何結構線稿。一個由左向右遞增的三級階梯狀構造，象徵古代的土山或防禦台階。線條洗練且極細。背景為純白色 (#FFFFFF)。絕對禁止出現任何標籤或文字。置中構圖。 (English Prompt: Minimalist geometric line art. A triple-stepped structure rising from left to right, symbolizing an ancient mound or defensive terrace. Clean, ultra-thin black lines on a pure white background. Absolutely no symbols, text, or labels. Centered composition.)",
+      "prompt_final": "高品質國風藝術渲染圖，呈現「高階中國風」遊戲美學。基於階梯結構線稿，使用蒼勁的焦墨與乾筆水墨處理，賦予階梯如岩石與厚重山脈般的質感。背景純白，氣氛嚴肅且具備防禦感。高品質遊戲資產。 (English Prompt: High-quality final render in Chinese Style Game Art Aesthetic. Based on the stepped structural sketch where bold charred ink and dry-brush strokes are used to create the texture of rocks and heavy mountains. Background: Pure white. Atmosphere: solemn and defensive. Premium game asset quality. No text.)",
       "fontSize": 399,
       "left": 118,
       "top": 526,
       "width": 168,
       "height": 363,
-      "note": "計畫解構 (欄1)"
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄1)"
     },
     {
       "text": "車",
       "image": "etymology_chariot_ink.png",
       "image_struct": "etymology_chariot_struct.png",
+      "prompt_sketch": "極簡主義幾何結構線稿。對稱的鳥瞰視角：中間為一個長方形轎廂，左右各有一個圓形的輪子，由一根平直的橫軸貫穿。線條洗練、極細。背景為純白色 (#FFFFFF)。絕對禁止出現任何標籤。 (English Prompt: Minimalist structural sketch. Symmetric top-down view of an ancient chariot: A central rectangular carriage with two circular wheels on left and right, connected by a straight horizontal axle. Clean, ultra-thin black lines on a pure white background. Minimalist geometric line art. Absolutely no text, symbols, or labels. Centered composition.)",
+      "prompt_final": "高品質「車」部國風渲染，呈現「高階中國風」遊戲美學。基於戰車結構線稿，使用金屬質感的水墨（深灰與古銀色系）渲染車輪與軸線，中間加強墨色深度以顯現動態與對稱美。背景純白，氣氛強悍且精確。高品質遊戲資產。 (English Prompt: High-quality final render in Chinese Style Game Art Aesthetic. Based on the chariot structural sketch where metallic-toned ink (dark grey and ancient silver) renders the wheels and axle, with deep ink intensity in the center to show power and symmetry. Background: Pure white. Atmosphere: powerful and precise. Premium game asset quality. No text.)",
       "fontSize": 652,
       "left": 287,
       "top": 374,
       "width": 367,
       "height": 593,
-      "note": "計畫解構 (欄2)"
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄2)"
     }
-  ],
-  "deconstructionPlan": {
-    "columns": [
-      {
-        "parts": [
-          "阜"
-        ]
-      },
-      {
-        "parts": [
-          "車"
-        ]
-      }
-    ]
-  }
+  ]
 }

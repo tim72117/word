@@ -65,23 +65,15 @@ async function drawSingleCard() {
     const targetChar = wordList[currentIndex];
     console.log(`🎴 抽卡開始: 索引 ${currentIndex}, 字元: ${targetChar}`);
 
-    // 取得該字設定 (優先嘗試合併 production 與 sketch)
+    // 取得該字設定 (僅使用 production_config)
     let config = null;
-    let prodConfig = null;
-    let rawConfig = null;
 
     try {
         const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
-        if (prodResp.ok) prodConfig = await prodResp.json();
-    } catch (e) { }
-
-    try {
-        const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
-        if (configResp.ok) rawConfig = await configResp.json();
-    } catch (e) { console.warn("找不到 .sketch_config.json"); }
-
-    // 合併策略：production 優先，sketch 次之
-    config = { ...(rawConfig || {}), ...(prodConfig || {}) };
+        if (prodResp.ok) config = await prodResp.json();
+    } catch (e) { 
+        console.warn("找不到 production_config.json", e);
+    }
 
     await drawOneCard(targetChar, config);
     await sleep(400); 
@@ -134,23 +126,15 @@ async function goToNextWord() {
     // 3. 隱藏舊說明
     scene.classList.remove('show-info');
 
-    // 4. 抽新卡 (優先嘗試合併 production 與 sketch)
+    // 4. 抽新卡 (僅使用 production_config)
     let config = null;
-    let prodConfig = null;
-    let rawConfig = null;
 
     try {
         const prodResp = await fetch(`characters/${targetChar}/production_config.json`);
-        if (prodResp.ok) prodConfig = await prodResp.json();
-    } catch (e) { }
-
-    try {
-        const configResp = await fetch(`characters/${targetChar}/.sketch_config.json`);
-        if (configResp.ok) rawConfig = await configResp.json();
-    } catch (e) { console.warn("找不到 .sketch_config.json"); }
-
-    // 合併策略：production 優先，sketch 次之
-    config = { ...(rawConfig || {}), ...(prodConfig || {}) };
+        if (prodResp.ok) config = await prodResp.json();
+    } catch (e) {
+        console.warn("找不到 production_config.json", e);
+    }
 
     await drawOneCard(targetChar, config);
     await sleep(400); 

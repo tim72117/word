@@ -1,151 +1,98 @@
 {
   "charName": "聽",
-  "bgFilename": "_raw_base.png",
-  "componentExplanations": [
-    {
-      "components": [
-        "耳"
-      ],
-      "label": "耳朵",
-      "explanation": "聽東西的時候，耳朵是最重要的法寶。",
-      "image": "etymology_ear_ink.png",
-      "left": "0px",
-      "top": "444px",
-      "width": "293px",
-      "height": "586px"
-    },
-    {
-      "components": [
-        "十",
-        "目",
-        "一"
-      ],
-      "label": "正直注視",
-      "isIdeographic": true,
-      "explanation": "要把眼睛正對著對方，表示你正在認真地看、專心地聽。",
-      "image": "etymology_eye_ink.png",
-      "left": "294px",
-      "top": "310px",
-      "width": "438px",
-      "height": "477px"
-    },
-    {
-      "components": [
-        "一",
-        "心"
-      ],
-      "label": "一心一意",
-      "isIdeographic": true,
-      "explanation": "不只是聽聲音，整個人都要靜下心來，專注在對方身上。"
-    }
+  "canvasSize": [
+    768,
+    1344
   ],
-  "deconstructionPlan": {
-    "columns": [
-      {
-        "parts": [
-          "耳"
-        ]
-      },
-      {
-        "parts": [
-          "十",
-          "目",
-          "一",
-          "心"
-        ]
-      }
-    ]
+  "bgFilename": "_raw_base.png",
+  "reference": {
+    "fontSize": 650,
+    "left": 59,
+    "top": 339,
+    "width": 650,
+    "height": 531,
+    "color": "rgba(255, 255, 255, 0.15)"
   },
-  "labelMap": {
-    "耳": "Ear",
-    "十": "Ten",
-    "目": "Mu",
-    "一": "Yi",
-    "心": "Heart"
+  "settings": {
+    "gap": 6,
+    "xSearchRange": [
+      0.3,
+      0.65
+    ],
+    "rotationThreshold": 1.5,
+    "valleyWindow": 15,
+    "valleySpacing": 40,
+    "fontName": "TW-Kai-98_1.ttf",
+    "labelMap": {
+      "耳": "left_top",
+      "壬": "left_bottom",
+      "十目一": "right_top",
+      "心": "right_bottom"
+    },
+    "deconstructionPlan": {
+      "columns": [
+        {
+          "parts": [
+            "耳",
+            "壬"
+          ]
+        },
+        {
+          "parts": [
+            "十目一",
+            "心"
+          ]
+        }
+      ]
+    }
   },
   "elements": [
     {
-      "text": "聽",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "rgba(255, 255, 255, 0.15)",
-      "fontSize": "650px",
-      "left": "59.0px",
-      "top": "339.0px",
-      "rotateX": 0,
-      "rotateY": 0,
-      "rotateZ": 0,
-      "isPhonetic": false,
-      "note": "全字參考底稿"
-    },
-    {
       "text": "耳",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "462px",
-      "left": "95px",
-      "top": "508px",
-      "width": "222px",
-      "height": "420px",
+      "image": "etymology_ear_ink.png",
+      "image_struct": "etymology_ear_struct.png",
+      "prompt_sketch": "僅依據提供空白參考圖的矩形長寬比，生成極簡結構素描，呈現古代風格化的「耳」字源符號。風格：乾淨、纖細的黑線，極簡幾何線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字與標籤，確保耳符號置中。 (English Prompt: Based ONLY on the rectangular aspect ratio of the provided blank reference image, generate a minimalist structural sketch of an ancient stylized Chinese ear (耳) etymology symbol. Style: Clean, ultra-thin black lines, minimalist geometric line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters, no labels. ONLY draw the minimalist ear symbol centered in the image.)",
+      "prompt_final": "高品質最終渲染圖，風格定位為「中國風遊戲美術 」。嚴格遵循參考草圖中「耳」的構圖與透視。將線稿轉化為具備「華麗寫意水墨」與「層次感手遊插畫」美學的藝術品。筆觸流暢有力，墨跡具有豐富的深淺變化與擴散質感。背景，純白。整體氣氛大氣、深邃。高品質遊戲資產。絕對不包含漢字，並精確維持參考圖的比例與置中佈局。 (English Prompt: High-quality final render in Chinese Style Game Art Aesthetic. Strictly follow the composition of the reference structural sketch of the 'Ear' symbol. Transform the wireframe into a sophisticated hybrid of expressive water-ink and layered mobile game illustration. The lines are fluid and powerful, featuring rich ink gradients and diffuse textures. Background: Pure white. Atmosphere: grand and profound. Premium game asset quality. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain exact proportions and centered layout. 9:16 aspect ratio.)",
+      "fontSize": 144,
+      "left": 134,
+      "top": 502,
+      "width": 183,
+      "height": 131,
       "rotateZ": 0,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_1_row_1",
-      "note": "計畫解構 (欄1)"
+      "note": "產自解構計畫 (欄1)"
     },
     {
-      "text": "十",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "288px",
-      "left": "318px",
-      "top": "412px",
-      "width": "262px",
-      "height": "140px",
-      "rotateZ": 90,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_1",
-      "note": "計畫解構 (欄2)"
+      "text": "壬",
+      "fontSize": 330,
+      "left": 95,
+      "top": 634,
+      "width": 215,
+      "height": 300,
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄1)"
     },
     {
-      "text": "目",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "319px",
-      "left": "345px",
-      "top": "565px",
-      "width": "290px",
-      "height": "140px",
-      "rotateZ": 90,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_2",
-      "note": "計畫解構 (欄2)"
-    },
-    {
-      "text": "一",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "200px",
-      "left": "372px",
-      "top": "729px",
-      "width": "182px",
-      "height": "24px",
-      "rotateZ": 90,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_3",
-      "note": "計畫解構 (欄2)"
+      "text": "十目一",
+      "image": "etymology_eye_ink.png",
+      "prompt_sketch": "極簡結構素描，包含上方一個幾何化的十字準星，以及中間一隻風格化的眼睛。風格：乾淨、纖細的黑線，極簡線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字。 (English Prompt: A minimalist structural sketch containing a geometric crosshair/target reticle at the top, and a stylized eye in the middle. Style: Clean, ultra-thin black lines, minimalist line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters. ONLY draw the geometric crosshair and the minimalist eye.)",
+      "prompt_final": "高品質最終渲染圖，嚴格遵循參考草圖（上方準星與下方風格化眼睛）的構圖。將簡單的線框轉化為美麗的「現代中式水墨畫」，結合極簡美學與有表現力的筆觸及微妙的墨跡暈染效果。風格：現代中式水墨畫。稀疏但優雅的水墨細節。眼睛應顯得深邃、專注且具書卷氣。準星應由迅速、自信的筆觸構成。背景：純淨白色虛空。柔和漫射光。高品質遊戲資產。優雅大氣的氛圍。絕對不包含漢字，並保持乾淨分離的佈局。 (English Prompt: High-quality final render, strictly following the composition and perspective provided in the reference sketch (a crosshair/target reticle above a stylized eye). Transform the wireframe into a beautiful 'Modern Chinese ink wash painting' (水墨畫) combining minimalist aesthetics with expressive brushstrokes and subtle ink bleeding (暈染). Style: Modern Chinese ink wash painting. Sparse but elegant water-ink details. The eye should feel deep, focused and scholarly. The crosshair should be composed of swift, confident brush strokes. Background: Pure clear white void. Soft, diffuse lighting. Premium game asset quality. Elegant and majestic atmosphere. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain the clean, separated layout (crosshair on top, eye below).)",
+      "fontSize": 335,
+      "left": 318,
+      "top": 406,
+      "width": 317,
+      "height": 305,
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄2)"
     },
     {
       "text": "心",
-      "fontFamily": "'MasaFont', cursive",
-      "color": "#ffffff",
-      "fontSize": "391px",
-      "left": "319px",
-      "top": "767px",
-      "width": "356px",
-      "height": "161px",
+      "fontSize": 391,
+      "left": 319,
+      "top": 723,
+      "width": 356,
+      "height": 211,
       "rotateZ": 90,
-      "isPhonetic": false,
-      "deconstructionMethod": "plan_col_2_row_4",
-      "note": "計畫解構 (欄2)"
+      "note": "產自解構計畫 (欄2)"
     }
   ]
 }

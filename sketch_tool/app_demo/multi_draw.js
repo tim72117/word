@@ -1,0 +1,315 @@
+const deck = document.getElementById('deck');
+const hand = document.getElementById('hand');
+const resetBtn = document.getElementById('resetBtn');
+const scene = document.querySelector('.scene');
+const focusOverlay = document.getElementById('focusOverlay');
+
+let isDrawing = false;
+let drawnCards = [];
+let focusedCard = null;
+
+let preparedWords = [];
+
+// 初始化時取得準備好的字
+async function initPreparedWords() {
+    try {
+        const response = await fetch('prepared_words.json');
+        preparedWords = await response.json();
+    } catch (e) {
+        console.warn("無法讀取 prepared_words.json，將使用預設卡牌", e);
+    }
+}
+initPreparedWords();
+
+deck.addEventListener('click', () => {
+    if (isDrawing || drawnCards.length > 0) return;
+    drawThreeCards();
+});
+
+resetBtn.addEventListener('click', resetTest);
+
+focusOverlay.addEventListener('click', () => {
+    if (focusedCard) blurCard(focusedCard);
+});
+
+async function drawThreeCards() {
+    isDrawing = true;
+
+    // 隱藏提示
+    document.querySelector('.deck-hint').style.opacity = '0';
+
+    for (let i = 0; i < 3; i++) {
+        await drawOneCard(i);
+        await sleep(200); // 抽取間隔
+    }
+
+    await sleep(400); // 等待抽取動畫完成
+    fanOutCards();
+    isDrawing = false;
+}
+
+function drawOneCard(index) {
+    return new Promise(async (resolve) => {
+        const card = document.createElement('div');
+        card.className = 'drawn-card';
+
+        // 初始位置在牌堆（遠處），配合 768px 基礎尺寸調小縮放
+        card.style.transform = `rotateX(60deg) rotateZ(-10deg) translateZ(-50px) scale(0.13)`;
+
+        let cardContent = `
+            <div class="card-inner">
+                <div class="face face-front">
+                    <img src="card_face.png" alt="Card Face" loading="eager" class="bg-layer">
+                </div>
+                <div class="face face-back"></div>
+            </div>
+        `;
+
+        if (preparedWords.length > 0) {
+            const randomWord = preparedWords[Math.floor(Math.random() * preparedWords.length)];
+            const rootUrl = `characters/${randomWord}`;
+
+            let config = null;
+            // 嘗試取得該字的設定
+            try {
+                const configResp = await fetch(`${rootUrl}/production_config.json`);
+                config = await configResp.json();
+
+                const bgImg = config.bgFilename ? `${rootUrl}/${config.bgFilename}` : 'card_face.png';
+
+                // 動態生成解說圖片（改從 componentExplanations 提取，與步驟 1:1 綁定）
+                let elementsHtml = '';
+                if (config.componentExplanations && config.componentExplanations.length > 0) {
+                    elementsHtml = config.componentExplanations.map((step, sIdx) => {
+                        const imgSource = step.image ? `${rootUrl}/${step.image}` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        const style = `
+                            left: ${step.left || '0px'};
+                            top: ${step.top || '0px'};
+                            width: ${step.width || '100%'};
+                            height: ${step.height || 'auto'};
+                            position: absolute;
+                            opacity: 1;
+                            pointer-events: none;
+                            z-index: 100;
+                            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+                        `;
+                        const className = 'etymology-image' + (step.image ? '' : ' no-image');
+                        const filenameData = step.image ? `data-filename="${step.image}"` : '';
+                        const stepIndexData = `data-step-index="${sIdx}"`;
+
+                        return `<img src="${imgSource}" class="${className}" style="${style}" ${filenameData} ${stepIndexData}>`;
+                    }).join('');
+                }
+
+                cardContent = `
+                    <div class="card-inner">
+                        <div class="face face-front">
+                            <div class="stage-container">
+                                <img src="${bgImg}" alt="Card Face" loading="eager" class="bg-layer" onerror="this.src='card_face.png'">
+                                <div class="component-highlight"></div>
+                                <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer" onerror="this.style.display='none'">
+                                <img src="${rootUrl}/ink_phono.png" alt="Phonetic Ink" class="ink-layer phono-ink" onerror="this.style.display='none'">
+                                <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer" onerror="this.style.display='none'">
+                                ${elementsHtml}
+                            </div>
+                        </div>
+                        <div class="face face-back"></div>
+                    </div>
+                `;
+            } catch (e) {
+                console.warn(`載入 ${randomWord} 設定時出錯:`, e);
+                // 標配備援
+                cardContent = `
+                    <div class="card-inner">
+                        <div class="face face-front">
+                            <img src="card_face.png" alt="Card Face" loading="eager" class="bg-layer">
+                            <img src="${rootUrl}/ink.png" alt="Ink Layer" class="ink-layer">
+                            <img src="${rootUrl}/brush.png" alt="Brush Layer" class="brush-layer">
+                            ${elementsHtml}
+                        </div>
+                        <div class="face face-back"></div>
+                    </div>
+                `;
+            }
+        }
+
+        card.innerHTML = cardContent;
+
+        // 如果有聲符範圍，則加入動作按鈕
+        if (config && config.phonoRange) {
+            const r = config.phonoRange;
+            const btn = document.createElement('button');
+            btn.className = 'phono-action-btn';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%;">
+                    <path d="M11 5L6 9H2V15H6L11 19V5Z"></path>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            `;
+            const left = ((r.x + r.width) / 768 * 100);
+            const top = (r.y / 1344 * 100);
+            btn.style.left = `${left}%`;
+            btn.style.top = `${top}%`;
+            btn.style.transform = 'translate(-50%, -50%) translateZ(5px)';
+
+            // 加入聲符發光提示
+            const glow = document.createElement('div');
+            glow.className = 'phono-glow';
+            glow.style.left = `${r.x / 768 * 100}%`;
+            glow.style.top = `${r.y / 1344 * 100}%`;
+            glow.style.width = `${r.width / 768 * 100}%`;
+            glow.style.height = `${r.height / 1344 * 100}%`;
+            card.querySelector('.face-front').appendChild(glow);
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                if ('speechSynthesis' in window) {
+                    const phonoText = config.elements.find(el => el.isPhonetic)?.text || "";
+                    const uttr = new SpeechSynthesisUtterance(phonoText || (typeof randomWord !== 'undefined' ? randomWord : ""));
+                    uttr.lang = 'zh-TW';
+                    window.speechSynthesis.speak(uttr);
+                }
+            };
+            card.querySelector('.face-front').appendChild(btn);
+        }
+
+        // 如果有演變邏輯，則加入資訊面板
+        if (config && config.evolution) {
+            const info = document.createElement('div');
+            info.className = 'char-info-panel';
+            info.innerHTML = `
+                <div class="info-title">字源總結</div>
+                <div>${config.evolution}</div>
+                <div class="info-hint">點擊看解構</div>
+            `;
+            card.querySelector('.face-front').appendChild(info);
+
+            // 分步解說面板
+            const stepInfo = document.createElement('div');
+            stepInfo.className = 'step-info-panel';
+            card.querySelector('.face-front').appendChild(stepInfo);
+
+            let currentStep = -1; // -1: 初始, 0+: 解說步驟, last+1: 回到總結
+            const explanations = config.componentExplanations || [];
+
+            card.addEventListener('click', (e) => {
+                if (isDrawing) return;
+                e.stopPropagation();
+
+                currentStep++;
+                if (currentStep >= explanations.length) {
+                    // 完成解說，顯示總結
+                    currentStep = -1;
+                    card.classList.remove('in-explanation');
+                    card.classList.add('show-info');
+                    
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const uttr = new SpeechSynthesisUtterance(config.evolution);
+                        uttr.lang = 'zh-TW';
+                        window.speechSynthesis.speak(uttr);
+                    }
+                } else {
+                    // 執行具體的步驟解說
+                    card.classList.add('in-explanation');
+                    card.classList.remove('show-info');
+                    
+                    const step = explanations[currentStep];
+                    stepInfo.innerHTML = `
+                        <div class="info-title">${step.label}</div>
+                        <div>${step.explanation}</div>
+                        <div class="info-hint">(${currentStep + 1}/${explanations.length}) 點擊繼續</div>
+                    `;
+
+                    // 高亮對應部件
+                    const imgEls = card.querySelectorAll('.etymology-image');
+                    const highlightBox = card.querySelector('.component-highlight');
+
+                    // 更新高亮背景位置（即使沒有組件圖片，也顯示範圍提示）
+                    if (step.left && step.top) {
+                        highlightBox.style.left = step.left;
+                        highlightBox.style.top = step.top;
+                        highlightBox.style.width = step.width;
+                        highlightBox.style.height = step.height;
+                        highlightBox.style.opacity = '1';
+                    } else {
+                        highlightBox.style.opacity = '0';
+                    }
+
+                    // 精確匹配當前步驟的圖片
+                    imgEls.forEach(el => {
+                        const stepIndex = parseInt(el.dataset.stepIndex);
+                        if (stepIndex === card.currentStep) {
+                            el.style.opacity = '1';
+                        } else {
+                            el.style.opacity = '0.3'; // 半透明保留位置感
+                        }
+                    });
+
+
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const uttr = new SpeechSynthesisUtterance(step.explanation);
+                        uttr.lang = 'zh-TW';
+                        window.speechSynthesis.speak(uttr);
+                    }
+                }
+            });
+        }
+
+        // 保持卡片可點擊（但不放大），如果需要其他點擊邏輯可在此添加
+        // 原本的 focusCard/blurCard 邏輯已移除
+
+        hand.appendChild(card);
+        drawnCards.push(card);
+
+        // 強制 reflow
+        card.offsetHeight;
+
+        // 抽取效果：移動到中心上方
+        card.style.opacity = '1';
+        card.style.transform = `translateY(-150px) translateZ(100px) rotateX(0deg) scale(0.2)`;
+
+        setTimeout(resolve, 800);
+    });
+}
+
+function focusCard(card) {
+    if (focusedCard && focusedCard !== card) blurCard(focusedCard);
+
+    focusedCard = card;
+    card.classList.add('focused');
+    scene.classList.add('has-focus');
+}
+
+function blurCard(card) {
+    card.classList.remove('focused');
+    scene.classList.remove('has-focus');
+    focusedCard = null;
+}
+
+function fanOutCards() {
+    const cardData = [
+        { x: -100, rotate: -15, y: 30 },
+        { x: 0, rotate: 0, y: 0 },
+        { x: 100, rotate: 15, y: 30 }
+    ];
+
+    drawnCards.forEach((card, i) => {
+        const data = cardData[i];
+        // 最終展開狀態：扇形，因基礎寬度 768px，需縮小至約 150px 的視覺大小
+        card.style.transform = `translateX(${data.x}px) translateY(${data.y}px) translateZ(150px) rotateZ(${data.rotate}deg) rotateX(0deg) scale(0.2)`;
+    });
+}
+
+function resetTest() {
+    if (isDrawing) return;
+
+    drawnCards.forEach(card => card.remove());
+    drawnCards = [];
+    document.querySelector('.deck-hint').style.opacity = '1';
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

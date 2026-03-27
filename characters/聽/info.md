@@ -14,75 +14,18 @@
 ## 3. 核心義項
 1. **聆聽、聞聲**：耳之所得。
 2. **聽從、採納**：接受他人的意見或命令。
-3. **處理、裁斷**：治理政事或審理案件（如：垂簾聽政、聽訟）。
+3. **處理、裁斷**：治理政事 or 審理案件（如：垂簾聽政、聽訟）。
 4. **任憑、任由**：放任其發展。
 
 ## 4. 繪製風格分析 (Style Analysis)
 - **藝術風格**：延續《中文字源》系列的「工筆重彩」與「水墨渲染」結合風格。具有精細的毛筆線條勾勒與豐富的層次感。
-- **色彩基調**：深邃而安定的冷暖對比。主色包括：沈穩的耳飾金、深邃的墨藍（代表沉思與傾聽）、古樸的宣紙黃、以及代表專注與內心的硃砂紅。
+- **色彩基調**：深邃而安定的冷暖對比。主色包括：沈穩的耳飾金、深邃的墨藍（代表沈思與傾聽）、古樸的宣紙黃、以及代表專注與內心的硃砂紅。
 - **光影與氛圍**：靜謐的室內光影。光線聚焦於「耳」部與「心」的位置，周圍環境則以淡墨暈染，營造出一種「屏息聆聽」的專注氛圍。
-- **構圖特徵**：採用「圓框扇面」或「多寶格」構圖，將耳朵、眼睛與心靈的符號有機結合。背景可隱約見到流動的音律線條（如煙霧般飄動）。
-- **線條細節**：極具彈性的工筆線條，特別是在描繪耳廓曲線與跳動的音律時，應呈現出如蠶絲般細緻的質感。
+- **構圖特徵**：採用「圓框扇面」或「多寶格」構圖，將耳朵、眼睛與心靈的符號有機結合。背景可隱約見到流動的音律線條。
 
 ## 5. 視覺開發建議 (User Updated Layout)
-- **畫面中心**：跳過「耳」部，專注於「𢛳」（德）部的拆解。
-- **構圖佈局**：
-  - **上方**：一個造型古樸的「目」（眼睛），眼睛中心或上方疊加一個**「十字準星」 (Crosshair)**，象徵極度的「專注」與「觀察」。
-  - **下方**：橫置的「一」與如同跳動火焰般的「心」（心臟）。
-- **象徵意義**：強調聽覺背後的「十目一心」，即全神貫注的觀察與領會。
-
-## 6. 生成提示詞 (Prompts Record) - 階梯式生成流程
-為了確保構圖精準，採用兩階段生成：
-
-## 4. 繪製風格分析 (Style Analysis - Referenced from 「園」)
-- **藝術風格**：極簡寫意水墨風格，強調氣韻與筆觸的靈動感，而非細部刻畫。
-- **色彩基調**：溫潤的古籍紙色，搭配靈動的淡墨與點綴的淡彩色。
-- **光影與氛圍**：輕鬆、空靈，具備禪意且不拘泥於形體。
-- **構圖特徵**：平衡但具備自然的手寫感。
-
-## 5. 視覺開發建議 (Updated with Relaxed Style)
 - **核心構圖**：「十目一心」。
 - **佈局細節**：
   - **上方**：以流暢筆觸勾勒出簡鍊的「目」，十字準星以纖細且略帶隨性的金線呈現。
   - **下方**：一筆而就的「一」與如同墨滴暈開般的心臟「心」。
   - **整體**：呈現如隨手寫意般的輕鬆與高級感。
-
-## 6. 生成提示詞 (Prompts Record) - 階梯式生成流程
-
-### 第一階段：極簡結構素描 (ting_structural_sketch_v5_flat.png)
-- **參考影像**：無
-- **中文提示詞**：極簡寫意結構素描，中文字部件「十目一心」的視覺拆解。構圖不包含耳朵。上方是簡鍊且靈動的眼睛（目），中心疊加纖細的「十字準星」。下方是橫向延伸、具備書法感的一劃「一」與簡潔的心臟。構圖採正面正視圖。風格：極簡素描，筆觸纖細乾淨。禁止出現任何文字或標籤（NO TEXT）。無陰影、無色彩。純白背景。9:16 寬高比。
-- **English Prompt**: A minimalistic structural sketch of the Chinese character components "Shi-Mu-Yi-Xin" (targeting crosshair, eye, horizontal line, heart). No ear included. At the top is a simple and fluid eye (Mu) with a thin crosshair. Below are a calligraphic horizontal stroke (Yi) and a concise heart shape. Front-view composition. Style: Minimalist sketch, clean and ultra-thin lines. Absolutely NO TEXT or labels. No shading, no color. Pure white background. 9:16 aspect ratio.
-
-### 第二階段：最終寫意水墨渲染圖 (ting_final_render_v6_relaxed.png)
-- **參考影像**：`ting_structural_sketch_v5_flat.png`
-- **中文提示詞**：高品質最終渲染圖，針對中文字「聽」的視覺演譯。嚴格遵循參考草圖 (v5) 的簡鍊構圖。使用**寫意水墨技法**在溫潤的古籍紙張上渲染。筆觸輕鬆、隨性且具備墨韻感。色彩極其淡雅，眼睛與線條微透金色。背景為廣大的白色留白，呈現出一種「大音希聲」的輕鬆禪意感。高品質遊戲資產。
-- **English Prompt**: High-quality final render for the visual interpretation of the character "Ting" (Listen). Strictly following the concise composition of the reference sketch (v5). Apply **Xieyi-style ink wash techniques** on warm ancient paper texture. Brushstrokes should be relaxed, spontaneous, and emphasize the flow of ink. Colors are extremely subtle, with a hint of gold on the eye and lines. Background: Vast white void (Liu-bai), presenting a relaxed Zen-like atmosphere of "Great sound is silent" (Da-yin-xi-sheng). Premium game asset quality. NO TEXT. Reference Image is the layout guide.
-
-
-## 7. 局部組件生成提示詞：正直注視 (Crosshair & Eye)
-為了讓各別組件在 UI 中有更高解析度的獨立展示，特別針對「十、目」進行了局部解構與草圖重製。
-
-### 第一階段：純幾何線框底圖 (etymology_eye_crosshair_structural.png)
-- **參考影像**：由後端腳本讀取 JSON 座標直接產生的純聯集尺寸圖 (reference_max_box.png)
-- **中文提示詞**：極簡結構素描，包含上方一個幾何化的十字準星，以及中間一隻風格化的眼睛。風格：乾淨、纖細的黑線，極簡線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字。
-- **English Prompt**: A minimalist structural sketch containing a geometric crosshair/target reticle at the top, and a stylized eye in the middle. Style: Clean, ultra-thin black lines, minimalist line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters. ONLY draw the geometric crosshair and the minimalist eye.
-
-### 第二階段：現代水墨渲染圖 (etymology_正直注視.png)
-- **參考影像**：第一階段生成的結構線稿
-- **中文提示詞**：高品質最終渲染圖，嚴格遵循參考草圖（上方準星與下方風格化眼睛）的構圖。將簡單的線框轉化為美麗的「現代中式水墨畫」，結合極簡美學與有表現力的筆觸及微妙的墨跡暈染效果。風格：現代中式水墨畫。稀疏但優雅的水墨細節。眼睛應顯得深邃、專注且具書卷氣。準星應由迅速、自信的筆觸構成。背景：純淨白色虛空。柔和漫射光。高品質遊戲資產。優雅大氣的氛圍。絕對不包含漢字，並保持乾淨分離的佈局。
-- **English Prompt**: High-quality final render, strictly following the composition and perspective provided in the reference sketch (a crosshair/target reticle above a stylized eye). Transform the simple wireframe into a beautiful 'Modern Chinese ink wash painting' (水墨畫) combining minimalist aesthetics with expressive brushstrokes and subtle ink bleeding (暈染). Style: Modern Chinese ink wash painting. Sparse but elegant water-ink details. The eye should feel deep, focused and scholarly. The crosshair should be composed of swift, confident brush strokes. Background: Pure clear white void. Soft, diffuse lighting. Premium game asset quality. Elegant and majestic atmosphere. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain the clean, separated layout (crosshair on top, eye below).
-
-## 8. 局部組件生成提示詞：耳 (Ear)
-針對「聽」字左半部「耳」的純淨解構與草圖重製。
-
-### 第一階段：純幾何線框底圖 (etymology_ear_structural.png)
-- **參考影像**：依據「耳」部原比例產生的純白尺寸圖 (reference_ear_box.png)
-- **中文提示詞**：僅依據提供空白參考圖的矩形長寬比，生成極簡結構素描，呈現古代風格化的「耳」字源符號。風格：乾淨、纖細的黑線，極簡幾何線稿，無陰影，無紋理，無墨跡渲染，無背景。純白背景。高精度。線條極簡。絕對不包含任何文字與標籤，確保耳符號置中。
-- **English Prompt**: Based ONLY on the rectangular aspect ratio of the provided blank reference image, generate a minimalist structural sketch of an ancient stylized Chinese ear (耳) etymology symbol. Style: Clean, ultra-thin black lines, minimalist geometric line art, no shading, no textures, no ink wash, no background. Pure white background. High precision. Very few lines. CRITICAL RULES: ABSOLUTELY NO text, no standard Chinese characters, no labels. ONLY draw the minimalist ear symbol centered in the image.
-
-### 第二階段：高階國風遊戲渲染圖 (etymology_ear_ink.png)
-- **參考影像**：第一階段生成的結構線稿
-- **中文提示詞**：高品質最終渲染圖，風格定位為「中國風遊戲美術 」。嚴格遵循參考草圖中「耳」的構圖與透視。將線稿轉化為具備「華麗寫意水墨」與「層次感手遊插畫」美學的藝術品。筆觸流暢有力，墨跡具有豐富的深淺變化與擴散質感。背景，純白。整體氣氛大氣、深邃。高品質遊戲資產。絕對不包含漢字，並精確維持參考圖的比例與置中佈局。
-- **English Prompt**: High-quality final render in **Chinese Style Game Art Aesthetic**. Strictly follow the composition of the reference structural sketch of the 'Ear' symbol. Transform the wireframe into a sophisticated hybrid of **expressive water-ink** and **layered mobile game illustration**. The lines are fluid and powerful, featuring rich ink gradients and diffuse textures. Background: **Pure white**. Atmosphere: grand and profound. Premium game asset quality. CRITICAL RULES: ABSOLUTELY NO text, no Chinese characters. Maintain exact proportions and centered layout. 9:16 aspect ratio.
-

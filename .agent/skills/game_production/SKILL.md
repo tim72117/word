@@ -30,12 +30,14 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
 ### 2. 模式選擇與自動化初始化 (Mode & Automation Init)
 *   **模式 A（全字模式）**：適用於單一象形字。
 *   **模式 B（部件分拆模式）**：**必須先執行**以下自動化初始化步驟：
-    1.  **背景生成**：執行腳本生成全字解析參考底圖 `_raw_base.png`。
-    2.  **自動結構分析**：執行 `analyze_structure.py` 自動辨識佈局，並初步生成 `.sketch_config.json`。
+    1.  **環境環境初始化 (`init_sketch_config.py`)**：執行此腳本，一次性生成 768x1344 的解析參考底圖 `_raw_base.png` 並建立基礎 `.sketch_config.json`。
+    2.  **自動結構分析 (`analyze_structure.py`)**：執行此腳本自動辨識影像佈局，並將邊界、座標資訊初步寫入已建立的 `.sketch_config.json`。
 
 ### 3. 配置與結構微調 (Sketching)
 *   **人工校準**：使用 **Sketch Tool** 開啟該字目錄，以 `_raw_base.png` 為底圖，微調各部件的座標與解析區域。
 *   **數據定錨**：確保 `.sketch_config.json` 中的數據（座標、大小）為唯一基準（Source of Truth）。
+*   **提示詞寫入 (Prompt Prep)**：**生成圖像前之必要動作**。將由 `info.md` 規劃之 `prompt_sketch` (結構圖提示詞) 與 `prompt_final` (渲染圖提示詞) 寫入 `.sketch_config.json` 部件對應欄位。**提示詞必須包含中英雙語版本**以提升 AI 生成之準確度。
+*   **人工確認 (User Confirmation)**：在開始任何 `generate_image` 動作前，**必須將更新後的提示詞與 JSON 配置呈現給使用者，並獲得明確確認後方可執行**。
 
 ### 4. 兩階段視覺渲染 (Two-Stage Rendering)
 *   根據 `.sketch_config.json` 生成以下圖片：
@@ -69,7 +71,7 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
     - **第二階段：國風藝術渲染 (Stage 2)**：**必須投入上一階段產出的 `etymology_[part]_struct.png` 作為參考影像**。將線稿轉化為具備「華麗寫意水墨」與「層次感手遊插畫」美學的藝術品。產出命名為 `etymology_[part]_ink.png`。
     - **亮度去背轉換 (`remove_background.py` 或 `process_etymology_component.py`)**：使用亮度去背腳本處理 AI 生成的影像。**僅針對第二階段產出的 Ink Render 執行去背**，將白底轉為全透明，墨跡呈現真實黑灰半透明層次。
 3. **資訊與資源完整保留規範**：
-   - **提示詞同步**：將兩階段生成的**中/英文提示詞**完整建檔於該目錄的 `info.md` 中，並**同步寫入 `.sketch_config.json` 的 `elements` 對應欄位**（`prompt_sketch`, `prompt_final`）。
+   - **提示詞同步**：將兩階段產出的**中/英文提示詞**完整建檔於該目錄的 `info.md` 中，並**分別同步寫入 `.sketch_config.json` 的對應欄位**（`prompt_sketch`, `prompt_sketch_zh`, `prompt_final`, `prompt_final_zh`）。
    - **嚴禁刪除任何過程圖像**（包括基準框與結構素描），這些資訊對於未來的風格統一與對位微調至關重要。
 
 ## 資源命名規範 (Resource Naming Standards)
@@ -108,8 +110,10 @@ description: 關於《中文字源》遊戲的製作規範與核心架構。
           "text": "車",
           "image": "etymology_chariot_ink.png",
           "image_struct": "etymology_chariot_struct.png",
-          "prompt_sketch": "極簡結構素描，呈現古代戰車... (English Prompt...)",
-          "prompt_final": "高品質最終渲染圖，寫意水墨... (English Prompt...)",
+          "prompt_sketch": "Extremely minimalist engineering line art of ancient chariot...",
+          "prompt_sketch_zh": "極簡工程線稿，呈現古代戰車結構...",
+          "prompt_final": "High quality final ink render, expressive brushwork...",
+          "prompt_final_zh": "高品質最終渲染圖，寫意水墨筆法...",
           "fontSize": 652,
           "left": 287,
           "top": 374,

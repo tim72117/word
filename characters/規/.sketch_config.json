@@ -1,0 +1,79 @@
+{
+  "charName": "規",
+  "canvasSize": [
+    768,
+    1344
+  ],
+  "bgFilename": "_raw_base.png",
+  "reference": {
+    "fontSize": 650,
+    "left": 59,
+    "top": 339,
+    "width": 650,
+    "height": 514,
+    "color": "rgba(255, 255, 255, 0.15)"
+  },
+  "settings": {
+    "gap": 6,
+    "xSearchRange": [
+      0.3,
+      0.65
+    ],
+    "rotationThreshold": 1.5,
+    "valleyWindow": 15,
+    "valleySpacing": 40,
+    "fontName": "TW-Kai-98_1.ttf",
+    "labelMap": {
+      "夫": "left",
+      "見": "right"
+    },
+    "deconstructionPlan": {
+      "columns": [
+        {
+          "parts": [
+            "夫"
+          ]
+        },
+        {
+          "parts": [
+            "見"
+          ]
+        }
+      ]
+    }
+  },
+  "elements": [
+    {
+      "text": "夫",
+      "image": "etymology_夫_ink.png",
+      "image_struct": "etymology_夫_struct.png",
+      "prompt_sketch": "Extremely minimalist engineering line art of a vertical standing adult male figure symbol used in ancient Chinese characters. Pure white background, thin black ink lines, no background details, only the simple geometric character structure. Clean, no labels, high precision line drawing.",
+      "prompt_sketch_zh": "極簡工程線稿，呈現古代漢字中的成年男子形象。純白背景，纖細黑墨線條，無背景細節，僅保留簡單的幾何字形結構。構圖端正、無標籤、高精度線條繪製。",
+      "prompt_final": "Fine art ink painting of an ancient Chinese male figure representing \"夫\". Premium Guofeng Game Art style, dynamic ink brush strokes, multi-layered depth, gold leaf gold foil details on fine Xuan paper texture, elegant charcoal gray and burnt sienna tones, professional hand-drawn illustration.",
+      "prompt_final_zh": "一張精美的水墨畫，描繪古代中國男子形象，代表漢字「夫」。高階國風遊戲美術風格，靈動的水墨筆觸，具備豐富層次感，精緻宣紙紋理上的金箔與灑金細節，典雅的木炭灰與焦赭色調，專業手繪插畫。",
+      "fontSize": 544,
+      "left": 92,
+      "top": 415,
+      "width": 253,
+      "height": 495,
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄1)"
+    },
+    {
+      "text": "見",
+      "image": "etymology_見_ink.png",
+      "image_struct": "etymology_見_struct.png",
+      "prompt_sketch": "Extremely minimalist engineering line art of \"見\", showing a large eye on top of a person figure. Pure white background, thin black ink lines, sacred geometric style, no labels, character component.",
+      "prompt_sketch_zh": "極簡工程線稿，呈現漢字「見」，展現一個在人體輪廓之上的巨大裝飾性眼睛。純白背景，纖細黑墨線條，神聖幾何風格，無標籤，字源部件。",
+      "prompt_final": "Stunning watercolor and ink wash render of a mystical seeing eye on a person figure for the Chinese character \"見\". Traditional calligraphy ink texture, subtle gold powder sprinkling, soft paper grain, premium game card aesthetic, deep indigo and golden highlights.",
+      "prompt_final_zh": "絕美的水墨渲染圖，描繪漢字「見」中人體之上的神秘觀察之眼。傳統書法水墨質感，細膩的灑金粉塵，柔和的紙張紋理，高階遊戲卡牌美學，深靛藍色與金色高光。",
+      "fontSize": 531,
+      "left": 346,
+      "top": 443,
+      "width": 334,
+      "height": 483,
+      "rotateZ": 0,
+      "note": "產自解構計畫 (欄2)"
+    }
+  ]
+}
